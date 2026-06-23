@@ -5,6 +5,15 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
+    "astropy>=8.0.0",
     "astroquery>=0.4.11",
+    "cartopy>=0.25.0",
     "ipykernel>=7.3.0",
+    "pandas>=3.0.3",
+    "pyerfa>=2.0.1.5",
+    "scipy>=1.18.0",
+    "setuptools<81",
+    "shapely>=2.1.2",
+    "sora-astro>=0.3.2.post2",
+    "spiceypy>=8.1.2",
 ]
