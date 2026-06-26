@@ -1,0 +1,35 @@
+{
+  "body": {
+    "id": "ceres",
+    "fields": {
+      "amount": 500,
+      "type": ["TNO", "Centaur"],
+      "orbit_uncertainty": [0, 1, 2, 3, 4],
+      "include": ["normal", "provisional"]
+    }
+  },
+  "database": ["MPC", "JPL"],
+  "epoch": [
+    {
+      "date": "2019-06-27",
+      "range": {
+        "start": "2019-06-27",
+        "stop": "2019-06-29",
+        "step": "1m",
+        "number": 10
+      }
+    }
+  ],
+  "observer": {
+    "code": "G37",
+    "coord": {
+      "longitude": -74.046,
+      "latitude": 40.689,
+      "elevation": 0.093
+    },
+    "geocentric": true
+  },
+  "limit_magnitude": null,
+  "exposition_time": null,
+  "ADS_key": null
+}

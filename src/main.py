@@ -1,7 +1,8 @@
-from data.mpc import ephemerides
+from reader import get_config
 
 def main():
-    print(ephemerides('ceres', step='1d', num=10, start='2020-01-01', obs='G37'))
+    settings = get_config()
+    print(settings['body']['id'])
 
 
 if __name__ == "__main__":
