@@ -1,8 +1,8 @@
-from reader import get_config
+from reader import get_config, default
 
 def main():
     settings = get_config()
-    print(settings['body']['id'])
+    settings = default(settings)
 
 
 if __name__ == "__main__":

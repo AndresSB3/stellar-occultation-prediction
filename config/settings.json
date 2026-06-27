@@ -1,33 +1,20 @@
 {
   "body": {
-    "id": "ceres",
+    "id": null,
     "fields": {
-      "amount": 500,
-      "type": ["TNO", "Centaur"],
-      "orbit_uncertainty": [0, 1, 2, 3, 4],
-      "include": ["normal", "provisional"]
+      "object_type": "asteroid",
+      "limit": 10,
+      "type": null,
+      "orbit_uncertainty": null,
+      "critical_list_numbered_object": null,
+      "include": null
     }
   },
-  "database": ["MPC", "JPL"],
-  "epoch": [
-    {
-      "date": "2019-06-27",
-      "range": {
-        "start": "2019-06-27",
-        "stop": "2019-06-29",
-        "step": "1m",
-        "number": 10
-      }
-    }
-  ],
+  "database": null,
+  "epoch": null,
   "observer": {
     "code": "G37",
-    "coord": {
-      "longitude": -74.046,
-      "latitude": 40.689,
-      "elevation": 0.093
-    },
-    "geocentric": true
+    "coord": null
   },
   "limit_magnitude": null,
   "exposition_time": null,
