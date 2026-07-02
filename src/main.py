@@ -1,8 +1,7 @@
-from reader import get_config
+from reader import update_localdatabase
 
 def main():
-    settings = get_config()
-    print(settings)
+    update_localdatabase()
 
 
 if __name__ == "__main__":
