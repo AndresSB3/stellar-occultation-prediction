@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 import pandas as pd
 import numpy as np
+import requests
 
 src_dir = Path(__file__).resolve().parent
 root_dir = src_dir.parent
@@ -18,11 +19,26 @@ def get_config():
   with open(settings_dir, "r") as file:
       settings = json.load(file)
   return settings
-
-def _get_bodies():
-    pass
   
-def update_localdatabase():
+# Function to automatically download MPCORB database
+def _update_mpcorb():
+  url = "https://www.minorplanetcenter.net/iau/MPCORB/MPCORB.DAT"
+
+  print("Requesting MPCORB...")
+  r = requests.get(url, timeout=120)
+  print("Downloading MPCORB...")
+  r.raise_for_status()
+
+  Path(data_dir).write_bytes(r.content)
+  print(f"File saved in {data_dir}")
+  
+# Function to update local classification database based on MPCORB data
+def update_localdatabase(download=False):
+  
+  # Optional MPCORB internet updating
+  if download:
+    _update_mpcorb()
+  
   MPCORB_dir = data_dir / "MPCORB.DAT"
   layout_dir = config_dir / "mpcorb_layout.json"
   
