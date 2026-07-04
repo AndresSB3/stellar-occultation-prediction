@@ -4,10 +4,10 @@
     "fields": {
       "object_type": "asteroid",
       "limit": 10,
-      "type": null,
+      "family": [null],
       "orbit_uncertainty": null,
       "critical_list_numbered_object": null,
-      "include": null
+      "state": ["provisional", "numbered"]
     }
   },
   "database": null,
