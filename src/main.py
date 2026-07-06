@@ -1,4 +1,5 @@
 from local_config import update_localdatabase, get_config
+from defaulter import default
 
 def main():
     
@@ -11,7 +12,9 @@ def main():
         
     # Get settings
     settings = get_config()
-
+    
+    # Default settings
+    settings = default(settings)
     
 
 if __name__ == "__main__":

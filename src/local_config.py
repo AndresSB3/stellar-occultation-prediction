@@ -19,6 +19,15 @@ def get_config():
   with open(settings_dir, "r") as file:
       settings = json.load(file)
   return settings
+
+# Function to import local classification database
+def get_localdatabase():
+  
+  # Data directory
+  dir = data_dir / "body_classification.csv"
+  
+  # Read CSV file
+  return pd.read_csv(dir, delimiter=',')
   
 # Function to automatically download MPCORB database
 def _update_mpcorb():

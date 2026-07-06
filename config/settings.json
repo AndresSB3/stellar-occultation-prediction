@@ -3,11 +3,11 @@
     "id": null,
     "fields": {
       "object_type": "asteroid",
-      "limit": 10,
-      "family": [null],
-      "orbit_uncertainty": null,
       "critical_list_numbered_object": null,
-      "state": ["provisional", "numbered"]
+      "limit": 5,
+      "family": ["is_centaur", "is_tno", "is_jupiter_trojan"],
+      "orbit_uncertainty": null,
+      "state": ["is_numbered"]
     }
   },
   "database": null,
