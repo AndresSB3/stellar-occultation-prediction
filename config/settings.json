@@ -5,7 +5,7 @@
       "object_type": "asteroid",
       "critical_list_numbered_object": null,
       "limit": 5,
-      "family": ["is_centaur", "is_tno", "is_jupiter_trojan"],
+      "family": ["is_paa", "is_hya", "is_tjn"],
       "orbit_uncertainty": null,
       "state": ["is_numbered"]
     }

@@ -3,19 +3,20 @@ from defaulter import default
 
 def main():
     
-    # Option to update
-    update = False
-    
-    # Updating process
-    if update:
-        update_localdatabase()
+  # Option to update
+  update = False
+  
+  # Updating process
+  if update:
+    update_localdatabase()
         
-    # Get settings
-    settings = get_config()
+  # Get settings
+  settings = get_config()
     
-    # Default settings
-    settings = default(settings)
+  # Default settings
+  settings = default(settings)
+  print(settings)
     
 
 if __name__ == "__main__":
-    main()
+  main()

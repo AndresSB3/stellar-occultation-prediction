@@ -13,7 +13,7 @@ def _search_bodies(fields):
   if obj_type == 'asteroid':
     asteroids = get_localdatabase()
     
-    families = fields['family'] or ['is_neo', 'is_mba', 'is_jupiter_trojan', 'is_centaur', 'is_tno', 'is_other']
+    families = fields['family'] or ['is_neo', 'is_mca', 'is_mba', 'is_tjn', 'is_cen', 'is_tno', 'is_paa', 'is_hya', 'is_ast']
     states = fields['state'] or ['is_provisional', 'is_numbered']
     obj_unc = fields['orbit_uncertainty'] or asteroids['orbit_uncertainty'].unique()
     limit = fields['limit'] or 300
