@@ -1,19 +1,22 @@
 from astropy.time import Time
 from astroquery.mpc import MPC
 from astroquery.jplhorizons import Horizons
+import re
 
 # Function to get ephemerides from MPC
-def mpc_eph(settings):
+def mpc_eph(body, epoch):
   
-  # Extract body and epoch info from settings
-  body = settings['body']['id']
-  if settings['epoch']['range']:
-    epoch = settings['epoch']['range']
-  else:
-    epoch = settings['epoch']
+  # Handle minutes
+  if re.search(r'm$', epoch['step']):
+    epoch['step'] = re.sub(r'm$', 'min', epoch['step'])
   
   # Get ephemerides
-  eph = MPC.get_ephemeris(body, start=epoch['start'], step=epoch['step'], number=epoch['number'])
+  eph = MPC.get_ephemeris(
+    body, 
+    start=epoch['start'], 
+    step=epoch['step'], 
+    number=epoch['number']
+  )
   eph['Date_jd'] = Time(eph['Date']).jd1 # date must be in JD
   
   # Extract important fields
@@ -27,14 +30,7 @@ def mpc_eph(settings):
   return df, error
 
 # Function to get ephemerides from JPL
-def jpl_eph(settings):
-  
-  # Extract body and epoch info from settings
-  body = settings['body']['id']
-  if settings['epoch']['range']:
-    epoch = settings['epoch']['range']
-  else:
-    epoch = settings['epoch']
+def jpl_eph(body, epoch):
   
   # Get ephemerides
   body = Horizons(id=body, epochs=epoch)

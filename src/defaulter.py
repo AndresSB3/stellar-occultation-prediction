@@ -43,12 +43,10 @@ def default(settings):
     settings['observer']['code'] = "geo"
   if not settings['epoch']:
     settings['epoch'] = {
-      "range": {
-        "start": str(Time.now()),
-        "stop": str(Time.now() + 1 * u.day),
-        "step": "1m",
-        "number": 720
-      }
+      "start": str(Time.now()),
+      "stop": str(Time.now() + 1 * u.day),
+      "step": "1m",
+      "number": 720
     }
   if not settings['body']['id']:
     settings['body']['id'] = _search_bodies(settings['body']['fields'])
