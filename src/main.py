@@ -22,33 +22,47 @@ def main():
   body = settings['body']['id']
   epoch = settings['epoch']
   
-  # Identify whether it is one body or multiple
-  if not isinstance(body, list):
-    body = [body]
+  # Dictionary for testing
+  ephs = {}
+  errs = {}
   
   # Get object ephemerides
   for rock in body:
     if "JPL" in settings['database']:
+      print(f'Querying JPL for {rock}, wait a moment...')
       try:
         eph, err = jpl_eph(rock, epoch)
-      except:  # noqa: E722
+        print(f'JPL query successful for {rock}!')
+      except Exception as e:
         if "MPC" in settings['database']:
+          print(f'JPL query failed. Presenting error:\n{e}\n\nQuerying MPC for {rock}, wait a moment...')
           try:
             eph, err = mpc_eph(rock, epoch)
-          except:  # noqa: E722
-            print('There has been an error querying JPL and MPC ephemerides')
+            print(f'MPC query successful for {rock}!')
+          except Exception as e:
+            print(f'MPC query failed. Presenting error:\n{e}\n\n')
         else:
-          print('There has been an error querying JPL ephemerides')
+          print('JPL query failed.')
     else:
+      print(f'Querying MPC for {rock}, wait a moment...')
       try:
         eph, err = mpc_eph(rock, epoch)
-      except:  # noqa: E722
-        print('There has been an error querying MPC ephemerides')
+        print(f'MPC query successful for {rock}!')
+      except Exception as e:
+        print(f'MPC query failed. Presenting error:\n{e}\n\n')
     
-    time.sleep(1)
+    print('Currently waiting to continue...')
+    time.sleep(2)
+    ephs[rock] = eph
+    errs[rock] = err
     
-  print(eph)
-    
+  print('Ephemerides extraction completed.')
+  
+  yes = input('Print result? (y/n)\n')
+  if yes == 'y':
+    print(ephs)
+  else:
+    print('Ok!')
 
 if __name__ == "__main__":
   main()

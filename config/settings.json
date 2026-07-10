@@ -1,16 +1,16 @@
 {
   "body": {
-    "id": "Silesia",
+    "id": "2005 EO296",
     "fields": {
       "object_type": "asteroid",
       "critical_list_numbered_object": null,
-      "limit": 5,
-      "family": ["is_paa", "is_hya", "is_tjn"],
-      "orbit_uncertainty": null,
-      "state": ["is_numbered"]
+      "limit": 1,
+      "family": null,
+      "orbit_uncertainty": [0],
+      "state": null
     }
   },
-  "database": null,
+  "database": ["MPC"],
   "epoch": null,
   "observer": {
     "code": "G37",

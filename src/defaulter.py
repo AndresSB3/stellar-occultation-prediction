@@ -39,6 +39,8 @@ def default(settings):
     settings['exposition_time'] = 5
   if not settings['database']:
     settings['database'] = ["JPL", "MPC"]
+  elif not isinstance(settings['database'], list):
+    settings['database'] = [settings['database']]
   if not settings['observer']['code'] and not settings['observer']['coord']:
     settings['observer']['code'] = "geo"
   if not settings['epoch']:
@@ -50,5 +52,7 @@ def default(settings):
     }
   if not settings['body']['id']:
     settings['body']['id'] = _search_bodies(settings['body']['fields'])
+  elif not isinstance(settings['body']['id'], list):
+    settings['body']['id'] = [settings['body']['id']]
     
   return settings
