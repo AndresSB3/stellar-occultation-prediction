@@ -21,7 +21,7 @@ def mpc_eph(body, epoch):
   
   # Extract important fields
   data = eph['Date_jd', 'RA', 'Dec', 'Delta']
-  error = []
+  error = None
   
   # Check for uncertainty fields
   unc_cols = ['Uncertainty 3sig', 'Unc. P.A.']
@@ -50,6 +50,7 @@ def jpl_eph(body, epoch):
   # Check if uncertainties exist
   if all(error['RA_3sigma'].mask):
     print('Uncertainty is masked, orbit solution might only be nominal and not have an uncertainty available.')
+    error = None
   
   # Convert to dataframe
   df = data.to_pandas()
