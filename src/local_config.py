@@ -83,52 +83,63 @@ def update_localdatabase(download=False):
 
   # Classify as NEOs (q < 1.3 AU)
   df['is_neo'] = df['perihelion_distance'] < 1.3
+  
+  # Classify as MCA (SBDB: 1.3 < q < 1.666 && a < 3.2)
+  mca_conditions = [
+    (df['semimajor_axis'] < 3.2) &
+    (df['perihelion_distance'] > 1.3) &
+    (df['perihelion_distance'] < 1.666)
+  ]
+  df['is_mca'] = np.select(mca_conditions, [True], default=False)
 
-  # Classify as MBAs (2.0 AU < a < 3.2 AU; e < 0.3; q > 1.3 AU)
+  # Classify as MBAs (SBDB: 1.666 < q && 2 < a < 4.6)
   mba_conditions = [
     (df['semimajor_axis'] > 2.0) & 
-    (df['semimajor_axis'] < 3.2) & 
-    (df['eccentricity'] < 0.3) & 
-    (df['perihelion_distance'] > 1.3)
+    (df['semimajor_axis'] < 4.6) &
+    (df['perihelion_distance'] > 1.666)
   ]
   df['is_mba'] = np.select(mba_conditions, [True], default=False)
 
-  # Classify Jupiter Trojans (4.95 AU < a < 5.45 AU; e < 0.6; I < 40°)
+  # Classify Jupiter Trojans (SBDB: 4.6 < a < 5.5 && e < 0.3)
   jup_conditions = [
-    (df['semimajor_axis'] > 4.95) &
-    (df['semimajor_axis'] < 5.45) &
-    (df['eccentricity'] < 0.6) &
-    (df['inclination'] < 40)
+    (df['semimajor_axis'] > 4.6) &
+    (df['semimajor_axis'] < 5.5) &
+    (df['eccentricity'] < 0.3)
   ]
-  df['is_jupiter_trojan'] = np.select(jup_conditions, [True], default=False)
+  df['is_tjn'] = np.select(jup_conditions, [True], default=False)
 
-  # Classify centaurs (5.2 AU < a < 30 AU; I < 80°; not jupiter trojan)
+  # Classify centaurs (SBDB: 5.5 < a < 30.1)
   centaur_conditions = [
-    (df['semimajor_axis'] > 5.2) &
-    (df['semimajor_axis'] < 30) &
-    (df['inclination'] < 80) &
-    (~df['is_jupiter_trojan'])
+    (df['semimajor_axis'] > 5.5) &
+    (df['semimajor_axis'] < 30.1) &
+    (~df['is_tjn'])
   ]
-  df['is_centaur'] = np.select(centaur_conditions, [True], default=False)
+  df['is_cen'] = np.select(centaur_conditions, [True], default=False)
 
-  # Classify TNOs (I consider classic so far: q > 1.3 AU; 41 AU < a; e < 0.25; I < 32°)
+  # Classify TNOs (SBDB: 30.1 < a)
   tno_conditions = [
-    (df['perihelion_distance'] > 1.3) &
-    (df['semimajor_axis'] > 41) &
-    (df['eccentricity'] < 0.25) &
-    (df['inclination'] < 32)
+    (df['semimajor_axis'] > 30.1)
   ]
   df['is_tno'] = np.select(tno_conditions, [True], default=False)
 
-  # Others
+  # Classify PAA (e = 1)
+  df['is_paa'] = df['eccentricity'] == 1
+
+  # Classify HYA (e > 1)
+  df['is_hya'] = df['eccentricity'] > 1
+
+  # AST (others)
   conditions = [
     (~df['is_neo']) &
+    (~df['is_mca']) &
     (~df['is_mba']) &
-    (~df['is_jupiter_trojan']) &
-    (~df['is_centaur']) &
-    (~df['is_tno'])
+    (~df['is_tjn']) &
+    (~df['is_cen']) &
+    (~df['is_tno']) &
+    (~df['is_paa']) &
+    (~df['is_hya'])
   ]
-  df['is_other'] = np.select(conditions, [True], default=False)
+  df['is_ast'] = np.select(conditions, [True], default=False)
 
   # Separate classification dataframe
   df_classification = df[[
@@ -139,12 +150,18 @@ def update_localdatabase(download=False):
     'is_eccentricity_assumed',
     'has_multiple_designation',
     'is_neo',
+    'is_mca',
     'is_mba',
-    'is_jupiter_trojan',
-    'is_centaur',
+    'is_tjn',
+    'is_cen',
     'is_tno',
-    'is_other'
+    'is_paa',
+    'is_hya',
+    'is_ast'
   ]]
+  
+  # Handle numbered + designation combinations
+  df_classification['designation'] = df_classification['designation'].str.replace(r"\(\d+\)\s(.*)", r"\1", regex=True)
 
   # Write new dataframe to a csv
   df_classification.to_csv(data_dir / 'body_classification.csv', index=False)

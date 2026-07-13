@@ -7,7 +7,7 @@ import time
 def main():
     
   # Option to update
-  update = False
+  update = True
   
   # Updating process
   if update:

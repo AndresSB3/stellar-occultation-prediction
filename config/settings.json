@@ -7,7 +7,7 @@
       "limit": 5,
       "family": null,
       "orbit_uncertainty": null,
-      "state": ["is_provisional"]
+      "state": ["is_numbered"]
     }
   },
   "database": ["MPC"],
