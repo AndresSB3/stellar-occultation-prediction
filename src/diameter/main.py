@@ -1,5 +1,6 @@
-from search import initialize_search
 from extraction import initialize_extraction
+from search import initialize_search
+
 
 def main():
   

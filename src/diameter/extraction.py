@@ -1,14 +1,16 @@
 import os
-import unicodedata
 import re
-import spacy
+import unicodedata
+
 import pandas as pd
+import spacy
+
 spacy_model = spacy.load('en_core_web_sm')
 
 # Lectura de corpus
 def read_corpus(corpus_path, file_name):
-  f = open(corpus_path + file_name, "r", encoding='utf-8')
-  return f.read()
+  with open(corpus_path + file_name, "r", encoding='utf-8') as f:
+    return f.read()
 
 # Normalización unicode
 def unicode_normalization(corpus):
@@ -70,24 +72,24 @@ def filter_heuristic(phrases, object_id, param_related, units, suspicious):
   for phrase in phrases:
 
     # Filtrar frases sin id de objeto
-    if not any([
+    if not any(
       re.search(r"\b" + id.lower() + r"\b", phrase.lower())
       for id in object_id
-    ]):
+    ):
       continue
 
     # Filtrar frases sin parámetro
-    if not any([
+    if not any(
       re.search(r"\b" + related.lower() + r"\b", phrase.lower())
       for related in param_related
-    ]):
+    ):
       continue
 
     # Filtrar frases sin número + unidades correctas
-    if not any([
+    if not any(
       re.search(r"\d\s" + unit.lower(), phrase.lower())
       for unit in units
-    ]):
+    ):
       continue
 
     # Si la frase es útil, se guarda
@@ -204,8 +206,8 @@ class document_text:
     phrase = phrase.split()
 
     # Calculamos la posición absoluta de cada palabra en la frase
-    d1 = [i for i, element in enumerate(phrase) if w1 in element][0]
-    d2 = [i for i, element in enumerate(phrase) if w2 in element][0]
+    d1 = next((i for i, element in enumerate(phrase) if w1 in element), None)
+    d2 = next((i for i, element in enumerate(phrase) if w2 in element), None)
 
     # Retornamos la distancia entre ambas palabras (distancia semántica)
     return abs(d1 - d2)
