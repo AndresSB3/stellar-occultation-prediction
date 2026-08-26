@@ -1,4 +1,8 @@
-from test_diameter import search
+from test_diameter.search import search
+
+
+def test_main():
+  search(token, prompt, fields, headers, amount, verbose=True)
 
 # Mini función para organizar el prompt
 def create_prompt(ids, params):
@@ -14,7 +18,7 @@ token = "dD15JbSYQrvUB5CZXhvnQxqeDfnT0gczHNRycyGu"
 headers = {"User-Agent": "ADS-literature-mining-script"}
 
 # IDs del objeto
-prompt_IDs = ['"(10199) Chariklo"', "Chariklo"]
+prompt_IDs = ["Chariklo"]
 
 # Parámetros que se buscan
 prompt_params = [
@@ -46,7 +50,6 @@ fields = [
 
 # Cantidad máxima de PDFs a buscar (muchos no están disponibles así que se
 # recomienda un valor alto)
-amount = 10
+amount = 500
 
-def test_main():
-  search(token, prompt, fields, headers, amount, verbose=True)
+test_main()

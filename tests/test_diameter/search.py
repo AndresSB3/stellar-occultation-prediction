@@ -3,8 +3,8 @@ import time
 
 import ads
 import requests
-from extract import extract_pdf_content
-from url import get_pdf_url
+from test_diameter.extract import extract_pdf_content
+from test_diameter.url import get_pdf_url
 
 
 # Main search function
@@ -68,7 +68,7 @@ def search(token, prompt, fields, headers, amount=500, verbose=False):
     
     # Extract paper text
     try:
-      extract_pdf_content(paper, pdf_request)
+      extract_pdf_content(paper, pdf_request, r"data/papers")
       if verbose:
         print(f"Procesado: {i+1}\n")
 

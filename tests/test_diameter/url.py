@@ -3,6 +3,7 @@ import json
 
 # Get PDF url from an ADS paper
 def get_pdf_url(paper):
+  pdf_url = None
   
   # Verifiy links exist and extract links
   if hasattr(paper, "links_data") and paper.links_data:
