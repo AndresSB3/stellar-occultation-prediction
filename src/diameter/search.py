@@ -3,10 +3,16 @@ import time
 
 import ads
 import requests
+from extract import extract_pdf_content
+from url import get_pdf_url
 
-from diameter.extract import extract_pdf_content
-from diameter.url import get_pdf_url
 
+# Check if a paper is accessible (open access)
+def is_accessible(paper):
+  return paper.property and any(
+    "OPENACCESS" in prop 
+    for prop in paper.property
+  )
 
 # Main search function
 def search(token, prompt, fields, headers, amount=500, verbose=False):
@@ -17,13 +23,7 @@ def search(token, prompt, fields, headers, amount=500, verbose=False):
   papers = list(query)
   
   # Only use open access or eprint papers
-  accessible_papers = [
-    paper for paper in papers 
-    if paper.property and (
-      "OPENACCESS" in paper.property or
-      "EPRINT" in paper.property
-    )
-  ]
+  accessible_papers = [paper for paper in papers if is_accessible(paper)]
   
   # Print available papers
   if verbose:
@@ -48,11 +48,11 @@ def search(token, prompt, fields, headers, amount=500, verbose=False):
       all_good = pdf_request.status_code == 200 and "pdf" in content_type
       
     # If an error arises, assume there is an error with the paper
-    except:  # noqa: E722
+    except requests.RequestException:
       all_good = False
     
     # Print out paper information in case there is an error
-    if verbose and not all_good:
+    if verbose and not all_good: 
       print(f"No disponible: {i+1}")
       print(f"  URL: {pdf_url}")
       try:
@@ -99,7 +99,7 @@ if __name__ == "__main__":
     os.rmdir(r"data/papers")
   
   # Testing token (personal account)
-  token = "dD15JbSYQrvUB5CZXhvnQxqeDfnT0gczHNRycyGu"
+  token = "9hxy6eZF1ewMuExS4ji083NXYmpTdGznEqJ3CVNk"
 
   # Request header
   headers = {"User-Agent": "ADS-literature-mining-script"}
