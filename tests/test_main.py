@@ -1,4 +1,4 @@
-from test_diameter.search import search
+from diameter.search import search
 
 
 def test_main():

@@ -2,113 +2,112 @@ import os
 import time
 
 import ads
-import pandas as pd
 import requests
-from pdf_reader import extract_pdf_content, get_pdf_url
+
+from diameter.extract import extract_pdf_content
+from diameter.url import get_pdf_url
 
 
-# Función proceso de búsqueda
-def search_process(token, headers, prompt, fields, amount, folder_name, vrb=False):
-
-  # Búsqueda en ADS
+# Main search function
+def search(token, prompt, fields, headers, amount=500, verbose=False):
+  
+  # Search with ADS package
   ads.config.token = token
   query = ads.SearchQuery(q=prompt, fl=fields, rows=amount)
   papers = list(query)
-  accessible_papers = []
-
-  # Filtrado de papers (solo se incluyen papers gratis y que no estén en contra
-  # de la minería de datos)
-  for paper in papers:
-    if paper.property and (
-        "OPENACCESS" in paper.property or
-        "EPRINT" in paper.property
-    ):
-      accessible_papers.append(paper)
-
-  # Presentamos total de papers encontrados y el total de papers accesibles
-  # encontrados
-  if vrb:
-    print(f"Total de papers: {len(papers)}")
-    print(f"Total de papers accesibles: {len(accessible_papers)}\n")
-
-  # Creamos carpeta para textos crudos
-  os.makedirs(folder_name, exist_ok=True)
-
-  # Contenedor de datos de papers
-  data = []
-
-  # Extraemos el texto de cada paper accesible y recopilamos sus datos
-  for i, paper in enumerate(accessible_papers):
-    pdf_url = get_pdf_url(paper)
-
-    try:
-      pdf_request = requests.get(pdf_url, headers=headers, timeout=60)
-      content_type = pdf_request.headers.get("Content-Type", "")
-
-      # Condición para extracción
-      all_good = pdf_request.status_code == 200 and "pdf" in content_type
-
-    except: # noqa: E722
-      all_good = False
-
-    # En caso de no cumplirse la condición, imprimimos estado del PDF
-    if vrb and not all_good:
-      print(f"No disponible: {i+1}")
-      print(f"  URL: {pdf_url}")
-      
-      if "pdf_request" in locals() and pdf_request is not None:
-        print(f"  estado: {pdf_request.status_code}")
-        
-      if "content_type" in locals():
-        print(f"  tipo: {content_type}\n")
-        
-      time.sleep(1)
-      continue
-
-    # En caso de si cumplirse la condición, probamos extraer su contenido
-    try:
-      extract_pdf_content(paper, pdf_request, folder_name)
-      if vrb:
-        print(f"Procesado: {i+1}\n")
-
-    # En caso de error imprimimos un mensaje
-    except Exception as error:  # noqa: BLE001
-      if vrb:
-        print(f"Error en {i+1}: {error}\n")
-
-    # Pausa para evitar sobre cargar servidores
-    time.sleep(1)
-
-    # Guardamos campos del paper
+  
+  # Only use open access or eprint papers
+  accessible_papers = [
+    paper for paper in papers 
     if paper.property and (
       "OPENACCESS" in paper.property or
       "EPRINT" in paper.property
-    ):
-      data.append({
-        "title": paper.title[0] if paper.title else None,
-        "year": paper.year if paper.year else None,
-        "authors": ", ".join(paper.author) if paper.author else None,
-        "bibcode": paper.bibcode if paper.bibcode else None,
-        "property": paper.property if paper.property else None,
-      })
+    )
+  ]
+  
+  # Print available papers
+  if verbose:
+    print(f"Total de papers: {len(papers)}")
+    print(f"Total de papers accesibles: {len(accessible_papers)}\n")
+  
+  # Create folder if it does not exist already
+  os.makedirs(r"data/papers", exist_ok=True)
+  
+  # Text extraction
+  for i, paper in enumerate(accessible_papers):
+    
+    # Get pdf url
+    pdf_url = get_pdf_url(paper)
+    
+    # Try to make request
+    try:
+      pdf_request = requests.get(pdf_url, headers=headers, timeout=60)
+      
+      # Check content and status code
+      content_type = pdf_request.headers.get("Content-Type", "")
+      all_good = pdf_request.status_code == 200 and "pdf" in content_type
+      
+    # If an error arises, assume there is an error with the paper
+    except:  # noqa: E722
+      all_good = False
+    
+    # Print out paper information in case there is an error
+    if verbose and not all_good:
+      print(f"No disponible: {i+1}")
+      print(f"  URL: {pdf_url}")
+      try:
+        print(f"  estado: {pdf_request.status_code}")
+        print(f"  tipo: {content_type}\n")
+        
+      # If an error arises with content and status code, it probably does not exist
+      except:  # noqa: E722, S110
+        pass
+      
+      # Pause and continue to the next paper
+      time.sleep(1)
+      continue
+    
+    # Extract paper text
+    try:
+      extract_pdf_content(paper, pdf_request, r"data/papers")
+      if verbose:
+        print(f"Procesado: {i+1}\n")
 
-  # Presentamos dataframe con los datos de los papers
-  df = pd.DataFrame(data)
-  if vrb:
-    print(f'\n{df}')
-  
+    # Error case, print the error
+    except Exception as error:  # noqa: BLE001
+      if verbose:
+        print(f"Error en {i+1}: {error}\n")
+    
+    time.sleep(1)
+
+# ----------------------------------------------------------------------
+# TESTING
+# ----------------------------------------------------------------------
+
+# Prompt = IDs + params in astronomy database
 def create_prompt(ids, params):
-    IDs = " OR ".join(ids)
-    Params = " OR ".join(params)
-    return f"({IDs}) AND ({Params}) AND database:astronomy"
+  IDs = " OR ".join(ids)
+  Params = " OR ".join(params)
+  return f"({IDs}) AND ({Params}) AND database:astronomy"
+    
+if __name__ == "__main__":
   
-def initialize_search(prompt_IDs=None, amount=500, token="dD15JbSYQrvUB5CZXhvnQxqeDfnT0gczHNRycyGu"):
+  # Delete previous data if it exists
+  if os.path.exists(r"data/papers"):
+    for file in os.listdir(r"data/papers"):
+      os.remove(os.path.join(r"data/papers", file))
+    os.rmdir(r"data/papers")
   
-  if not prompt_IDs:
-    prompt_IDs = ['"(10199) Chariklo"', "Chariklo"]
-  
+  # Testing token (personal account)
+  token = "dD15JbSYQrvUB5CZXhvnQxqeDfnT0gczHNRycyGu"
+
+  # Request header
   headers = {"User-Agent": "ADS-literature-mining-script"}
-  
+
+  # Object IDs
+  prompt_IDs = ['"(10199) Chariklo"', "Chariklo"]
+
+  # Search parameters
   prompt_params = [
     "diameter",
     "size",
@@ -123,8 +122,10 @@ def initialize_search(prompt_IDs=None, amount=500, token="dD15JbSYQrvUB5CZXhvnQx
     "albedo"
   ]
 
+  # Prompt
   prompt = create_prompt(prompt_IDs, prompt_params)
 
+  # Query fields
   fields = [
     "title",
     "year",
@@ -134,6 +135,8 @@ def initialize_search(prompt_IDs=None, amount=500, token="dD15JbSYQrvUB5CZXhvnQx
     "links_data"
   ]
 
-  folder_name = r"data/papers"
+  # Maximum PDF amount
+  amount = 500
   
-  search_process(token, headers, prompt, fields, amount, folder_name, vrb=True)
+  # Search and extract text
+  search(token, prompt, fields, headers, amount, verbose=True)

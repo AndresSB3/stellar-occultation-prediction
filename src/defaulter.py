@@ -1,6 +1,7 @@
-from local_config import get_localdatabase
-from astropy.time import Time
 import astropy.units as u
+from astropy.time import Time
+
+from local_config import get_localdatabase
 
 # Functions to standardize input data
 
