@@ -1,4 +1,5 @@
 import re
+import time
 
 from astropy.time import Time
 from astroquery.jplhorizons import Horizons
@@ -59,3 +60,40 @@ def jpl_eph(body, epoch):
   
   # Return data and error
   return df, error
+
+# Function to handle ephemerides retrieval based on settings
+def get_eph(body, epoch, database, verbose=False):
+
+  # JPL case
+  if "JPL" in database:
+    try:
+      eph, err = jpl_eph(body, epoch)
+      if verbose:
+        print(f'JPL query successful for {body}!')
+    except Exception as e:
+      if "MPC" in database:
+        if verbose:
+          print(f'JPL query failed. Presenting error:\n{e}\n\nQuerying MPC for {body}, wait a moment...')
+        try:
+          eph, err = mpc_eph(body, epoch)
+          if verbose:
+            print(f'MPC query successful for {body}!')
+        except Exception as e:
+          if verbose:
+            print(f'MPC query failed. Presenting error:\n{e}\n\n')
+      else:
+        if verbose:
+          print('JPL query failed.')
+  else:
+    try:
+      eph, err = mpc_eph(body, epoch)
+      if verbose:
+        print(f'MPC query successful for {body}!')
+    except Exception as e:
+      if verbose:
+        print(f'MPC query failed. Presenting error:\n{e}\n\n')
+  
+  print('Currently waiting to continue...')
+  time.sleep(2)
+  
+  return eph, err
