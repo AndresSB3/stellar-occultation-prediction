@@ -25,17 +25,19 @@ The project is currently under development. Current work includes:
 
 ## Project Structure
 
-occultations/ 
-├── config/ # Settings
-├── data/ # Local data
-├── notebooks/ # Exploratory analysis and experiments 
-├── src/ # Main project code 
-├── tests/ # Automated tests 
+``` text
+occ/ 
+├── config/     # Settings
+├── data/       # Local data
+├── notebooks/  # Exploratory analysis and experiments 
+├── src/        # Main project code 
+├── tests/      # Automated tests 
 ├── .gitignore
 ├── .python-version
 ├── pyproject.toml
 ├── README.md
 └── uv.lock
+```
 
 ## Future Work
 
