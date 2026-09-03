@@ -154,7 +154,7 @@ wheels = [
 [[package]]
 name = "body-diameter-search"
 version = "0.1.0"
-source = { git = "https://github.com/AndresSB3/body-diameter-search.git#db1596e130d32fbb02b4500d3c6ecc533df12999" }
+source = { git = "https://github.com/AndresSB3/body-diameter-search.git#9a949befcfb4ba592ddf10890c4d46c5a187a5fe" }
 dependencies = [
     { name = "ads" },
     { name = "en-core-web-sm" },
