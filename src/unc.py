@@ -17,9 +17,13 @@ def jpl_unc(err_row, method="sqr"):
         [np.sin(theta),  np.cos(theta)]
       ])
       return rot @ mat @ rot.T
+    case _:
+      raise ValueError(f"Unknown uncertainty method: {method}")
 
 def mpc_unc(err_row, method="sqr"):
   match method:
     case "sqr":
       var = (err_row['Uncertainty 3sig'] / 3) ** 2
       return np.diag([var, var])
+    case _:
+      raise ValueError(f"Unknown uncertainty method: {method}")

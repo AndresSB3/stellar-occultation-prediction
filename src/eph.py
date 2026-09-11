@@ -1,5 +1,4 @@
 import re
-import time
 
 from astropy.time import Time
 from astroquery.jplhorizons import Horizons
@@ -48,12 +47,23 @@ def jpl_eph(body, epoch):
   
   # Extract important fields
   data = eph['datetime_jd', 'RA', 'DEC', 'delta']
-  error = eph['RA_3sigma', 'DEC_3sigma', 'SMAA_3sigma', 'SMIA_3sigma', 'Theta_3sigma']
+  error = None
   
-  # Check if uncertainties exist
-  if all(error['RA_3sigma'].mask):
-    print('Uncertainty is masked, orbit solution might only be nominal and not have an uncertainty available.')
-    error = None
+  # Expected uncertainty columns for jpl query
+  unc_cols = ['RA_3sigma', 'DEC_3sigma', 'SMAA_3sigma', 'SMIA_3sigma', 'Theta_3sigma']
+  
+  # Verify if uncertainty columns exist
+  if all(col in eph.colnames for col in unc_cols):
+    error = eph['RA_3sigma', 'DEC_3sigma', 'SMAA_3sigma', 'SMIA_3sigma', 'Theta_3sigma']
+    
+    # Check if they are masked
+    if all(error['RA_3sigma'].mask):
+      print('Uncertainty is masked, orbit solution might only be nominal and not have an uncertainty available.')
+      error = None
+  
+  # If they don't exist, print it
+  else:
+    print('Ephemeris uncertainty is not available.')
   
   # Convert to dataframe
   df = data.to_pandas()
@@ -79,9 +89,13 @@ def get_eph(body, epoch, database, verbose=False):
           if verbose:
             print(f'MPC query successful for {body}!')
         except Exception as e:
+          eph = None
+          err = None
           if verbose:
             print(f'MPC query failed. Presenting error:\n{e}\n\n')
       else:
+        eph = None
+        err = None
         if verbose:
           print('JPL query failed.')
   else:
@@ -92,8 +106,5 @@ def get_eph(body, epoch, database, verbose=False):
     except Exception as e:
       if verbose:
         print(f'MPC query failed. Presenting error:\n{e}\n\n')
-  
-  print('Currently waiting to continue...')
-  time.sleep(2)
   
   return eph, err

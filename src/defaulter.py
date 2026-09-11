@@ -1,7 +1,7 @@
 import astropy.units as u
 from astropy.time import Time
 
-from local_config import get_localdatabase
+from src.local_config import get_localdatabase
 
 # Functions to standardize input data
 
@@ -17,7 +17,7 @@ def _search_bodies(fields):
     families = fields['family'] or ['is_neo', 'is_mca', 'is_mba', 'is_tjn', 'is_cen', 'is_tno', 'is_paa', 'is_hya', 'is_ast']
     states = fields['state'] or ['is_provisional', 'is_numbered']
     obj_unc = fields['orbit_uncertainty'] or asteroids['orbit_uncertainty'].unique()
-    limit = fields['limit'] or 300
+    limit = fields['limit'] or 300 # If the limit is 0, it must use the default value (as a search of 0 makes no sense)
     
     asteroids = asteroids[
       asteroids[families].any(axis=1) &
@@ -25,8 +25,12 @@ def _search_bodies(fields):
       asteroids['orbit_uncertainty'].isin(obj_unc)
     ]['designation']
       
+    # Handle case where the amount of asteroids found is smaller than the current limit
+    limit = min(limit, len(asteroids))
     if not asteroids.empty:
       asteroids = asteroids.sample(n=limit).to_list()
+    else:
+      asteroids = []
       
     return asteroids
 

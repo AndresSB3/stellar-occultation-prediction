@@ -39,36 +39,11 @@ def _update_mpcorb():
   print("Downloading MPCORB...")
   r.raise_for_status()
 
-  Path(data_dir).write_bytes(r.content)
+  MPCORB_dir = data_dir / "MPCORB.DAT"
+  MPCORB_dir.write_bytes(r.content)
   print(f"File saved in {data_dir}")
   
-# Function to update local classification database based on MPCORB data
-def update_localdatabase(download=False):
-  
-  # Optional MPCORB internet updating
-  if download:
-    _update_mpcorb()
-  
-  MPCORB_dir = data_dir / "MPCORB.DAT"
-  layout_dir = config_dir / "mpcorb_layout.json"
-  
-  with open(MPCORB_dir, "r") as f:
-    for i, line in enumerate(f):
-      if not line.startswith("00001"):
-        continue
-      header_rows = i
-      break
-  
-  with open(layout_dir, "r") as file:
-    layout = json.load(file)
-  
-  # Dataframe conversion
-  df = pd.read_fwf(
-      MPCORB_dir,
-      colspecs=layout["colspecs"],
-      names=layout["names"],
-      skiprows=header_rows
-  )
+def classify_bodies(df):
   
   # Classify as numbered or provisional (state)
   df['is_numbered'] = df['designation'].str.startswith("(")
@@ -163,6 +138,39 @@ def update_localdatabase(download=False):
   
   # Handle numbered + designation combinations
   df_classification['designation'] = df_classification['designation'].str.replace(r"\(\d+\)\s(.*)", r"\1", regex=True)
-
+  
+  return df_classification
+  
+# Function to update local classification database based on MPCORB data
+def update_localdatabase(download=False):
+  
+  # Optional MPCORB internet updating
+  if download:
+    _update_mpcorb()
+  
+  MPCORB_dir = data_dir / "MPCORB.DAT"
+  layout_dir = config_dir / "mpcorb_layout.json"
+  
+  with open(MPCORB_dir, "r") as f:
+    for i, line in enumerate(f):
+      if not line.startswith("00001"):
+        continue
+      header_rows = i
+      break
+  
+  with open(layout_dir, "r") as file:
+    layout = json.load(file)
+  
+  # Dataframe conversion
+  df = pd.read_fwf(
+      MPCORB_dir,
+      colspecs=layout["colspecs"],
+      names=layout["names"],
+      skiprows=header_rows
+  )
+  
+  # Classify bodies
+  df_classification = classify_bodies(df)
+  
   # Write new dataframe to a csv
   df_classification.to_csv(data_dir / 'body_classification.csv', index=False)

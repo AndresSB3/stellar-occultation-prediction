@@ -1,11 +1,11 @@
 from sora import Body
 
 # from unc import jpl_unc, mpc_unc
-from defaulter import default
-from diameter import handle_diameter
+from src.defaulter import default
+from src.diameter import handle_diameter
 
 # from eph import get_eph
-from local_config import get_config, update_localdatabase
+from src.local_config import get_config, update_localdatabase
 
 
 def main(verbose=False, update=False):

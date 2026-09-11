@@ -3,7 +3,7 @@ import re
 import numpy as np
 from body_diameter_search import find_diameter
 
-from local_config import get_localdatabase
+from src.local_config import get_localdatabase
 
 
 # Function to check if the diameter of a SORA body class exists
