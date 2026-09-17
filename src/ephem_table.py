@@ -1,5 +1,8 @@
 import numpy as np
 from astropy import units as u
+from astropy.coordinates import SkyCoord
+from astropy.time import Time
+from scipy.interpolate import interp1d
 from sora.ephem.meta import BaseEphem
 
 
@@ -84,5 +87,35 @@ class EphemTable(BaseEphem):
     # Create meta attribute
     self.meta = {'kernels': 'EphemTable'}
     
+    # Convert times to numeric values
+    times = table['time'].to_value(u.d)
+    
+    # Create linear interpolators for each variable (extrapolation is not supported)
+    self._inter_ra_sin = interp1d(times, table['ra_sin'], bounds_error=True)
+    self._inter_ra_cos = interp1d(times, table['ra_cos'], bounds_error=True)
+    self._inter_dec = interp1d(times, table['dec'], bounds_error=True)
+    self._inter_distance = interp1d(times, table['distance'], bounds_error=True)
+    
+  # Method to compute position of an object for a given time
   def get_position(self, time, observer='geocenter'):
-    pass
+    
+    # Normalize time formatting
+    time = Time(time)
+    jd = time.jd 
+    
+    # Compute corresponding coordinate and distance for the given time using the linear interpolator
+    ra_sin = self._inter_ra_sin(jd)
+    ra_cos = self._inter_ra_cos(jd)
+    dec = self._inter_dec(jd)
+    distance = self._inter_distance(jd)
+    
+    # Reconstruct RA coordinate from interpolated sine and cosine
+    ra = np.rad2deg(np.arctan2(ra_sin, ra_cos)) % 360
+    
+    # Return computed values as a skycoord
+    return SkyCoord(
+      ra=ra * u.deg,
+      dec=dec * u.deg,
+      distance=distance * u.au,
+      frame="icrs"
+    )
