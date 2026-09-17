@@ -3,8 +3,7 @@ from sora import Body
 # from unc import jpl_unc, mpc_unc
 from src.defaulter import default
 from src.diameter import handle_diameter
-
-# from eph import get_eph
+from src.eph import get_eph
 from src.local_config import get_config, update_localdatabase
 
 
@@ -20,11 +19,13 @@ def main(verbose=False, update=False):
   
   # Extract body and epoch from settings
   bodies = settings['body']['id']
-  # epoch = settings['epoch']
+  epoch = settings['epoch']
   
   # Get object ephemerides
   for rock in bodies:
-    # eph, err = get_eph(rock, epoch, settings['database'], verbose=verbose)
+    
+    # Get ephemerides and its error from the corresponding database
+    eph, err = get_eph(rock, epoch, settings['database'], verbose=verbose)
     
     # Body instantiation
     body = Body(rock)
