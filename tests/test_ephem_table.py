@@ -1,7 +1,11 @@
+import math
+
 import numpy as np
 import pytest
 from astropy import units as u
+from astropy.coordinates import ICRS, SkyCoord
 from astropy.table import Table
+from astropy.time import Time
 
 from src.ephem_table import EphemTable
 
@@ -17,7 +21,7 @@ def table():
   })
 
   
-# The table, min_time, max_time and meta attrs must exist and have the expected values. The get_position method must exist
+# The table, min_time, max_time, _inter_ra_sin, _inter_ra_cos, _inter_dec, _inter_distance and meta attrs must exist and have the expected values. The get_position method must exist
 def test_instantiation(table):
   ephem_table = EphemTable(table)
   assert hasattr(ephem_table, 'table')
@@ -29,6 +33,10 @@ def test_instantiation(table):
   assert hasattr(ephem_table, 'meta')
   assert ephem_table.meta == {'kernels': 'EphemTable'}
   assert hasattr(ephem_table, 'get_position')
+  assert hasattr(ephem_table, '_inter_ra_sin')
+  assert hasattr(ephem_table, '_inter_ra_cos')
+  assert hasattr(ephem_table, '_inter_dec')
+  assert hasattr(ephem_table, '_inter_distance')
   assert callable(ephem_table.get_position)
 
 # The attrs from BaseEphem must be inherited
@@ -228,3 +236,72 @@ def test_trig_trans(table):
   assert all(col in ephem_table.table.columns for col in cols)
   assert all(ephem_table.table['ra_sin'] == np.sin(np.deg2rad(table['ra'])))
   assert all(ephem_table.table['ra_cos'] == np.cos(np.deg2rad(table['ra'])))
+  
+# get_position must return the same position if given an exact time from the ephemerides
+def test_get_position_same_time(table):
+  ephem_table = EphemTable(table)
+  fake_time = Time(1, format='jd')
+  coords = ephem_table.get_position(fake_time)
+  assert math.isclose(coords.ra.value, 1)
+  assert math.isclose(coords.dec.value, 1)
+  assert math.isclose(coords.distance.value, 1)
+
+# We expect an error with a non Time object for get_position
+def test_get_position_invalid_time(table):
+  ephem_table = EphemTable(table)
+  fake_time = 1
+  with pytest.raises(TypeError):
+    ephem_table.get_position(fake_time)
+    
+# Test interpolation and check if coords are SkyCoord
+def test_get_position_interpolation(table):
+  ephem_table = EphemTable(table)
+  fake_time = Time(1.5, format='jd')
+  coords = ephem_table.get_position(fake_time)
+  assert math.isclose(coords.ra.value, 1.5)
+  assert math.isclose(coords.dec.value, 1.5)
+  assert math.isclose(coords.distance.value, 1.5)
+  assert isinstance(coords, SkyCoord)
+  
+# Test if get_position handles RA coordinates in 360-0
+def test_get_position_ra_boundary():
+  table = Table({
+    "time": [1, 2, 3, 4, 5] * u.d,
+    "ra": [359, 1, 3, 5, 7] * u.deg,
+    "dec": [1, 2, 3, 4, 5] * u.deg,
+    "distance": [1, 2, 3, 4, 5] * u.au
+  })
+  ephem_table = EphemTable(table)
+  fake_time = Time(1.5, format='jd')
+  coords = ephem_table.get_position(fake_time)
+  assert math.isclose(coords.ra.value, 0)
+  assert math.isclose(coords.dec.value, 1.5)
+  assert math.isclose(coords.distance.value, 1.5)
+  
+# get_position must not extrapolate
+def test_get_position_outside_range(table):
+  ephem_table = EphemTable(table)
+  fake_time = Time(8, format='jd')
+  with pytest.raises(ValueError):
+    ephem_table.get_position(fake_time)
+    
+# Test get_position handling an array of fake times
+def test_get_position_array_time(table):
+  ephem_table = EphemTable(table)
+  fake_time = Time([1.5, 2.5, 3.5, 4.5], format='jd')
+  coords = ephem_table.get_position(fake_time)
+  assert len(coords) == len(fake_time)
+  for i,t in enumerate(fake_time):
+    assert coords[i].ra.value == t.value
+    assert coords[i].dec.value == t.value
+    assert coords[i].distance.value == t.value
+    
+# Units must remain
+def test_get_position_units(table):
+  ephem_table = EphemTable(table)
+  fake_time = Time([1.5, 2.5, 3.5, 4.5], format='jd')
+  coords = ephem_table.get_position(fake_time)
+  assert table['ra'].unit == coords.ra.unit
+  assert table['dec'].unit == coords.dec.unit
+  assert table['distance'].unit == coords.distance.unit
+  assert isinstance(coords.frame, ICRS)

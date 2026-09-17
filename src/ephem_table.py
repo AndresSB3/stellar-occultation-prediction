@@ -88,7 +88,7 @@ class EphemTable(BaseEphem):
     self.meta = {'kernels': 'EphemTable'}
     
     # Convert times to numeric values
-    times = table['time'].to_value(u.d)
+    times = list(table['time'])
     
     # Create linear interpolators for each variable (extrapolation is not supported)
     self._inter_ra_sin = interp1d(times, table['ra_sin'], bounds_error=True)
@@ -99,8 +99,11 @@ class EphemTable(BaseEphem):
   # Method to compute position of an object for a given time
   def get_position(self, time, observer='geocenter'):
     
-    # Normalize time formatting
-    time = Time(time)
+    # The given time must be a Time object
+    if not isinstance(time, Time):
+      raise TypeError("Time must be an astropy Time object.")
+    
+    # Convert time to juliand dates
     jd = time.jd 
     
     # Compute corresponding coordinate and distance for the given time using the linear interpolator
