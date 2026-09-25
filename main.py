@@ -34,9 +34,6 @@ def main(verbose=False, update=False):
     # Body instantiation
     body = Body(rock)
     
-    # Assign ephemerides attribute from body to the eph_table object
-    body.ephem = eph_table
-    
     # Check if it has a diameter
     handle_diameter(body, settings['ADS_key'])
     
