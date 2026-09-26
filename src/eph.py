@@ -21,22 +21,22 @@ def mpc_eph(body, epoch):
   )
   eph['Date_jd'] = Time(eph['Date']).jd1 # date must be in JD
   
-  # Extract important fields
-  data = eph['Date_jd', 'RA', 'Dec', 'Delta']
-  error = None
-  
   # Check for uncertainty fields
   unc_cols = ['Uncertainty 3sig', 'Unc. P.A.']
   if all(col in eph.colnames for col in unc_cols):
-    error = eph['Uncertainty 3sig', 'Unc. P.A.']
+    data = eph['Date_jd', 'RA', 'Dec', 'Delta','Uncertainty 3sig', 'Unc. P.A.']
   else:
     print('Ephemeris uncertainty is not available.')
+    data = eph['Date_jd', 'RA', 'Dec', 'Delta']
+  
+  # Rename columns to be compatible with EphemTable formatting
+  data.rename_columns(["Date_jd", "RA", "Dec", "Delta"], ["time", "ra", "dec", "distance"])
   
   # Convert to dataframe
   df = data.to_pandas()
   
   # Return data and error
-  return df, error
+  return df
 
 # Function to get ephemerides from JPL
 def jpl_eph(body, epoch):
@@ -45,31 +45,33 @@ def jpl_eph(body, epoch):
   body = Horizons(id=body, epochs=epoch)
   eph = body.ephemerides()
   
-  # Extract important fields
-  data = eph['datetime_jd', 'RA', 'DEC', 'delta']
-  error = None
-  
   # Expected uncertainty columns for jpl query
   unc_cols = ['RA_3sigma', 'DEC_3sigma', 'SMAA_3sigma', 'SMIA_3sigma', 'Theta_3sigma']
   
-  # Verify if uncertainty columns exist
+   # Verify if uncertainty columns exist
   if all(col in eph.colnames for col in unc_cols):
-    error = eph['RA_3sigma', 'DEC_3sigma', 'SMAA_3sigma', 'SMIA_3sigma', 'Theta_3sigma']
+  
+    # Extract important fields
+    data = eph['datetime_jd', 'RA', 'DEC', 'delta', 'RA_3sigma', 'DEC_3sigma', 'SMAA_3sigma', 'SMIA_3sigma', 'Theta_3sigma']
     
     # Check if they are masked
-    if all(error['RA_3sigma'].mask):
+    if all(data['RA_3sigma'].mask):
       print('Uncertainty is masked, orbit solution might only be nominal and not have an uncertainty available.')
-      error = None
+      data = eph['datetime_jd', 'RA', 'DEC', 'delta']
   
   # If they don't exist, print it
   else:
     print('Ephemeris uncertainty is not available.')
+    data = eph['datetime_jd', 'RA', 'DEC', 'delta']
+  
+  # Rename columns to be compatible with EphemTable formatting
+  data.rename_columns(["datetime_jd", "RA", "DEC", "delta"], ["time", "ra", "dec", "distance"])
   
   # Convert to dataframe
   df = data.to_pandas()
   
   # Return data and error
-  return df, error
+  return df
 
 # Function to handle ephemerides retrieval based on settings
 def get_eph(body, epoch, database, verbose=False):

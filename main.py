@@ -26,7 +26,7 @@ def main(verbose=False, update=False):
   for rock in bodies:
     
     # Get ephemerides and its error from the corresponding database
-    eph, err = get_eph(rock, epoch, settings['database'], verbose=verbose)
+    eph = get_eph(rock, epoch, settings['database'], verbose=verbose)
     
     # Instantiate ephemerides to EphemTable
     eph_table = EphemTable(eph)

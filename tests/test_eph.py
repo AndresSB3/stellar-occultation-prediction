@@ -56,13 +56,13 @@ def test_mpc_eph_date_jd():
 
   # Use mock to not depend on external queries
   with patch("src.eph.MPC.get_ephemeris", return_value=fake_eph):   
-    result, _ = mpc_eph("Ceres", epoch)
+    result = mpc_eph("Ceres", epoch)
 
   # Convert expected result to time table from astropy
   expected = Time(fake_eph["Date"]).jd1
 
   # Verify the result
-  np.testing.assert_allclose(result["Date_jd"], expected)
+  np.testing.assert_allclose(result["time"], expected)
   
 # Test error treatment in mpc eph when error exists
 def test_mpc_eph_uncertainty_available():
@@ -84,18 +84,18 @@ def test_mpc_eph_uncertainty_available():
 
   # Use mock to not depend on external queries
   with patch("src.eph.MPC.get_ephemeris", return_value=fake_eph):
-    _, error = mpc_eph("Ceres", epoch)
+    result = mpc_eph("Ceres", epoch)
 
   # Error must not be none
-  assert error is not None
+  assert result is not None
   
   # Both error columns must exist
-  assert "Uncertainty 3sig" in error.colnames
-  assert "Unc. P.A." in error.colnames
+  assert "Uncertainty 3sig" in result.columns
+  assert "Unc. P.A." in result.columns
   
   # Both error columns must have the values from the fake eph
-  assert error["Uncertainty 3sig"][0] == 2.5
-  assert error["Unc. P.A."][0] == 45.0
+  assert result["Uncertainty 3sig"][0] == 2.5
+  assert result["Unc. P.A."][0] == 45.0
   
 # Test error treatment in mpc eph when error does not exist
 def test_mpc_eph_uncertainty_unavailable():
@@ -115,10 +115,11 @@ def test_mpc_eph_uncertainty_unavailable():
 
   # Use mock to not depend on external queries
   with patch("src.eph.MPC.get_ephemeris", return_value=fake_eph):
-    _, error = mpc_eph("Ceres", epoch)
+    result = mpc_eph("Ceres", epoch)
 
-  # The error must be None, as the fake eph did not had an error
-  assert error is None
+  # The error columns must not be in the table
+  assert "Uncertainty 3sig" not in result.columns
+  assert "Unc. P.A." not in result.columns
   
 # Test the instantiation of the Horizons object
 def test_jpl_eph():
@@ -143,7 +144,7 @@ def test_jpl_eph():
   # Use mock to not depend on the instantiation of an object
   with fake_horizons as mock_horizons:
     mock_horizons.return_value.ephemerides.return_value = fake_eph
-    _, _ = jpl_eph("Ceres", epoch)
+    _ = jpl_eph("Ceres", epoch)
 
   # Verify that the Horizons() function was called only once with the following arguments
   mock_horizons.assert_called_once_with(
@@ -176,16 +177,17 @@ def test_jpl_eph_uncertainty_unavailable():
     
     # Use fake_eph as return value when calling the ephemerides method
     mock_horizons.return_value.ephemerides.return_value = fake_eph
-    result, error = jpl_eph("Ceres", epoch)
+    result = jpl_eph("Ceres", epoch)
 
-  # The error must be None in this case
-  assert error is None
+  # The error columns must not be in the table
+  assert "Uncertainty 3sig" not in result.columns
+  assert "Unc. P.A." not in result.columns
   
   # The result must have only two ephs
   assert len(result) == 2
   
   # datetime_jd must remain
-  np.testing.assert_array_equal(result["datetime_jd"], fake_eph["datetime_jd"])
+  np.testing.assert_array_equal(result["time"], fake_eph["datetime_jd"])
 
 # Test when the uncertainty is available but it is masked
 def test_jpl_eph_uncertainty_masked():
@@ -214,10 +216,11 @@ def test_jpl_eph_uncertainty_masked():
     
     # Use fake eph as output for mock method ephemerides()
     mock_horizons.return_value.ephemerides.return_value = fake_eph
-    _, error = jpl_eph("Ceres", epoch)
+    result = jpl_eph("Ceres", epoch)
 
-  # Error must be None as it is masked
-  assert error is None
+  # The error columns must not be in the table as they are masked
+  assert "Uncertainty 3sig" not in result.columns
+  assert "Unc. P.A." not in result.columns
 
 # Test get_eph for the jpl only case
 def test_get_eph_jpl_success():
