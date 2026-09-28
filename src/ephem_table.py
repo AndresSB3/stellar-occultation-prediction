@@ -2,12 +2,12 @@ import numpy as np
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astropy.time import Time
-from scipy.interpolate import interp1d
+from scipy.interpolate import CubicSpline, PchipInterpolator, interp1d
 from sora.ephem.meta import BaseEphem
 
 
 class EphemTable(BaseEphem):
-  def __init__(self, table, name=None, spkid=None, radius=None, error_ra=0, error_dec=0, H=None, G=None, **kwargs):
+  def __init__(self, table, interpolation="linear", name=None, spkid=None, radius=None, error_ra=0, error_dec=0, H=None, G=None, **kwargs):
     
     # Handle kwargs (compatibility with base clase BaseEphem)
     base_kwargs = kwargs.copy()
@@ -41,7 +41,7 @@ class EphemTable(BaseEphem):
       
     # Time must not be negative
     if table['time'].min() < 0:
-      raise ValueError("Time cannot be negative")
+      raise ValueError("Julian Date cannot be negative")
       
     # Validate ra being between 0 and 360 degrees
     if table['ra'].min() < 0:
@@ -73,6 +73,10 @@ class EphemTable(BaseEphem):
     if not table['distance'].unit or table['distance'].unit != u.au:
       raise ValueError("Distance must be in AU.")
     
+    # Validate the chosen interpolation method
+    if interpolation not in ['linear', 'spline3', 'pchip']:
+      raise ValueError("Unknown interpolation method.")
+    
     # Store sine and cosine of RA for circular interpolation
     table['ra_sin'] = np.sin(np.deg2rad(table['ra']))
     table['ra_cos'] = np.cos(np.deg2rad(table['ra']))
@@ -87,14 +91,56 @@ class EphemTable(BaseEphem):
     # Create meta attribute
     self.meta = {'kernels': 'EphemTable'}
     
-    # Convert times to numeric values
-    times = list(table['time'])
+    # Configure interpolators with the given method
+    self._set_interpolation(interpolation)
+    
+  # Method to configure interpolation
+  def _set_interpolation(self, interpolation):
+    match interpolation:
+      case "linear":
+        self._linear()
+      case "spline3":
+        self._spline3()
+      case "pchip":
+        self._pchip()
+      case _:
+        raise ValueError("Unknown interpolation method.")
+  
+  # Method to create linear interpolators
+  def _linear(self):
+    
+    # Extract times
+    times = list(self.table['time'])
     
     # Create linear interpolators for each variable (extrapolation is not supported)
-    self._inter_ra_sin = interp1d(times, table['ra_sin'], bounds_error=True)
-    self._inter_ra_cos = interp1d(times, table['ra_cos'], bounds_error=True)
-    self._inter_dec = interp1d(times, table['dec'], bounds_error=True)
-    self._inter_distance = interp1d(times, table['distance'], bounds_error=True)
+    self._inter_ra_sin = interp1d(times, self.table['ra_sin'], bounds_error=True)
+    self._inter_ra_cos = interp1d(times, self.table['ra_cos'], bounds_error=True)
+    self._inter_dec = interp1d(times, self.table['dec'], bounds_error=True)
+    self._inter_distance = interp1d(times, self.table['distance'], bounds_error=True)
+  
+  # Method to create spline3 interpolators
+  def _spline3(self):
+    
+    # Extract times
+    times = list(self.table['time'])
+    
+    # Create cubic spline interpolators for each variable (extrapolation is not supported)
+    self._inter_ra_sin = CubicSpline(times, self.table['ra_sin'], extrapolate=False)
+    self._inter_ra_cos = CubicSpline(times, self.table['ra_cos'], extrapolate=False)
+    self._inter_dec = CubicSpline(times, self.table['dec'], extrapolate=False)
+    self._inter_distance = CubicSpline(times, self.table['distance'], extrapolate=False)
+    
+  # Method to create pchip interpolators
+  def _pchip(self):
+    
+    # Extract times
+    times = list(self.table['time'])
+    
+    # Create pchip interpolators for each variable (extrapolation is not supported)
+    self._inter_ra_sin = PchipInterpolator(times, self.table['ra_sin'], extrapolate=False)
+    self._inter_ra_cos = PchipInterpolator(times, self.table['ra_cos'], extrapolate=False)
+    self._inter_dec = PchipInterpolator(times, self.table['dec'], extrapolate=False)
+    self._inter_distance = PchipInterpolator(times, self.table['distance'], extrapolate=False)
     
   # Method to compute position of an object for a given time
   def get_position(self, time, observer='geocenter'):
@@ -106,11 +152,15 @@ class EphemTable(BaseEphem):
     # Convert time to juliand dates
     jd = time.jd 
     
-    # Compute corresponding coordinate and distance for the given time using the linear interpolator
+    # Compute corresponding coordinate and distance for the given time using the preferred interpolation method
     ra_sin = self._inter_ra_sin(jd)
     ra_cos = self._inter_ra_cos(jd)
     dec = self._inter_dec(jd)
     distance = self._inter_distance(jd)
+    
+    # Check for nans due to attempting to extrapolate with cubic and pchip methods
+    if np.isnan(ra_sin).any() or np.isnan(ra_cos).any() or np.isnan(dec).any() or np.isnan(distance).any():
+      raise ValueError("Extrapolation is not supported.")
     
     # Reconstruct RA coordinate from interpolated sine and cosine
     ra = np.rad2deg(np.arctan2(ra_sin, ra_cos)) % 360
