@@ -7,11 +7,16 @@
       "limit": 1,
       "family": null,
       "orbit_uncertainty": null,
-      "state": ["is_provisional"]
+      "state": ["is_numbered"]
     }
   },
-  "database": ["MPC"],
-  "epoch": null,
+  "database": ["JPL", "MPC"],
+  "epoch": {
+    "start": "2020-01-01",
+    "stop": "2020-01-01",
+    "step": "1s",
+    "number": 10
+  },
   "observer": {
     "code": "G37",
     "coord": null

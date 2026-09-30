@@ -1,5 +1,6 @@
 import re
 
+from astropy import units as u
 from astropy.time import Time
 from astroquery.jplhorizons import Horizons
 from astroquery.mpc import MPC
@@ -32,11 +33,14 @@ def mpc_eph(body, epoch):
   # Rename columns to be compatible with EphemTable formatting
   data.rename_columns(["Date_jd", "RA", "Dec", "Delta"], ["time", "ra", "dec", "distance"])
   
-  # Convert to dataframe
-  df = data.to_pandas()
+  # Assign units
+  data['time'].unit = u.d
+  data['ra'].unit = u.deg
+  data['dec'].unit = u.deg
+  data['distance'].unit = u.au
   
   # Return data and error
-  return df
+  return data
 
 # Function to get ephemerides from JPL
 def jpl_eph(body, epoch):
@@ -67,11 +71,14 @@ def jpl_eph(body, epoch):
   # Rename columns to be compatible with EphemTable formatting
   data.rename_columns(["datetime_jd", "RA", "DEC", "delta"], ["time", "ra", "dec", "distance"])
   
-  # Convert to dataframe
-  df = data.to_pandas()
+  # Assign units
+  data['time'].unit = u.d
+  data['ra'].unit = u.deg
+  data['dec'].unit = u.deg
+  data['distance'].unit = u.au
   
   # Return data and error
-  return df
+  return data
 
 # Function to handle ephemerides retrieval based on settings
 def get_eph(body, epoch, database, verbose=False):
@@ -79,7 +86,7 @@ def get_eph(body, epoch, database, verbose=False):
   # JPL case
   if "JPL" in database:
     try:
-      eph, err = jpl_eph(body, epoch)
+      eph = jpl_eph(body, epoch)
       if verbose:
         print(f'JPL query successful for {body}!')
     except Exception as e:
@@ -87,26 +94,25 @@ def get_eph(body, epoch, database, verbose=False):
         if verbose:
           print(f'JPL query failed. Presenting error:\n{e}\n\nQuerying MPC for {body}, wait a moment...')
         try:
-          eph, err = mpc_eph(body, epoch)
+          eph = mpc_eph(body, epoch)
           if verbose:
             print(f'MPC query successful for {body}!')
         except Exception as e:
           eph = None
-          err = None
           if verbose:
             print(f'MPC query failed. Presenting error:\n{e}\n\n')
       else:
         eph = None
-        err = None
+        print('a')
         if verbose:
-          print('JPL query failed.')
+          print(f'JPL query failed. Presenting error:\n{e}\n\n')
   else:
     try:
-      eph, err = mpc_eph(body, epoch)
+      eph = mpc_eph(body, epoch)
       if verbose:
         print(f'MPC query successful for {body}!')
     except Exception as e:
       if verbose:
         print(f'MPC query failed. Presenting error:\n{e}\n\n')
   
-  return eph, err
+  return eph

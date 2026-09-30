@@ -7,7 +7,7 @@ from sora.ephem.meta import BaseEphem
 
 
 class EphemTable(BaseEphem):
-  def __init__(self, table, interpolation="linear", name=None, spkid=None, radius=None, error_ra=0, error_dec=0, H=None, G=None, **kwargs):
+  def __init__(self, table, interpolation="spline3", name=None, spkid=None, radius=None, error_ra=0, error_dec=0, H=None, G=None, **kwargs):
     
     # Handle kwargs (compatibility with base clase BaseEphem)
     base_kwargs = kwargs.copy()

@@ -343,7 +343,7 @@ def test_get_position_ra_boundary_linear():
     "dec": [1, 2, 3, 4, 5] * u.deg,
     "distance": [1, 2, 3, 4, 5] * u.au
   })
-  ephem_table = EphemTable(table)
+  ephem_table = EphemTable(table, interpolation='linear')
   fake_time = Time(1.5, format='jd')
   coords = ephem_table.get_position(fake_time)
   assert math.isclose(coords.ra.value, 0)

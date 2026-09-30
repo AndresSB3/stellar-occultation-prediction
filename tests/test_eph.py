@@ -233,11 +233,10 @@ def test_get_eph_jpl_success():
     "number": 2
   }
   fake_eph = "fake_jpl_eph"
-  fake_err = "fake_jpl_error"
 
   # Use a mock to not depend on eph function
-  with patch("src.eph.jpl_eph", return_value=(fake_eph, fake_err)) as mock_jpl, patch("src.eph.mpc_eph") as mock_mpc:
-    result_eph, result_err = get_eph("Ceres", epoch, ["JPL"])
+  with patch("src.eph.jpl_eph", return_value=fake_eph) as mock_jpl, patch("src.eph.mpc_eph") as mock_mpc:
+    result_eph = get_eph("Ceres", epoch, ["JPL"])
 
   # Verify that jpl_eph is called only once and with the following args
   mock_jpl.assert_called_once_with("Ceres", epoch)
@@ -247,7 +246,6 @@ def test_get_eph_jpl_success():
 
   # The returns must match the fakes
   assert result_eph == fake_eph
-  assert result_err == fake_err
 
 # Test get_eph for the jpl and mpc case (jpl failes)
 def test_get_eph_jpl_fail_mpc_success():
@@ -260,11 +258,10 @@ def test_get_eph_jpl_fail_mpc_success():
     "number": 2
   }
   fake_eph = "fake_mpc_eph"
-  fake_err = "fake_mpc_error"
   
   # Use a mock to not depend on eph functions
-  with patch("src.eph.jpl_eph", side_effect=Exception("JPL failed")) as mock_jpl, patch("src.eph.mpc_eph", return_value=(fake_eph, fake_err)) as mock_mpc:
-    result_eph, result_err = get_eph("Ceres", epoch, ["JPL", "MPC"])
+  with patch("src.eph.jpl_eph", side_effect=Exception("JPL failed")) as mock_jpl, patch("src.eph.mpc_eph", return_value=fake_eph) as mock_mpc:
+    result_eph = get_eph("Ceres", epoch, ["JPL", "MPC"])
   
   # Verify that jpl_eph was called once
   mock_jpl.assert_called_once_with("Ceres", epoch)
@@ -274,7 +271,6 @@ def test_get_eph_jpl_fail_mpc_success():
   
   # The returns must be the those of MPC
   assert result_eph == fake_eph
-  assert result_err == fake_err
 
 # Test get_eph for the mpc only case
 def test_get_eph_mpc_success():
@@ -287,11 +283,10 @@ def test_get_eph_mpc_success():
     "number": 2
   }
   fake_eph = "fake_mpc_eph"
-  fake_err = "fake_mpc_error"
 
   # Use a mock to not depend on eph functions
-  with patch("src.eph.mpc_eph", return_value=(fake_eph, fake_err)) as mock_mpc, patch("src.eph.jpl_eph") as mock_jpl:
-    result_eph, result_err = get_eph("Ceres", epoch, ["MPC"])
+  with patch("src.eph.mpc_eph", return_value=fake_eph) as mock_mpc, patch("src.eph.jpl_eph") as mock_jpl:
+    result_eph = get_eph("Ceres", epoch, ["MPC"])
 
   # Verify that mpc_eph is called only once and with the following args
   mock_mpc.assert_called_once_with("Ceres", epoch)
@@ -301,7 +296,6 @@ def test_get_eph_mpc_success():
 
   # The returns must match the fakes
   assert result_eph == fake_eph
-  assert result_err == fake_err
     
 # Test get_eph for the jpl only case (jpl fails)
 def test_get_eph_jpl_fail():
@@ -316,7 +310,7 @@ def test_get_eph_jpl_fail():
 
   # Use a mock to not depend on eph function
   with patch("src.eph.jpl_eph", side_effect=Exception("JPL failed")) as mock_jpl, patch("src.eph.mpc_eph") as mock_mpc:
-    result_eph, result_err = get_eph("Ceres", epoch, ["JPL"])
+    result_eph = get_eph("Ceres", epoch, ["JPL"])
 
   # Verify that jpl_eph is called only once and with the following args
   mock_jpl.assert_called_once_with("Ceres", epoch)
@@ -326,7 +320,6 @@ def test_get_eph_jpl_fail():
 
   # The returns must match the fakes
   assert result_eph is None
-  assert result_err is None
 
 # Test get_eph when both databases fail
 def test_get_eph_both_fail():
@@ -341,7 +334,7 @@ def test_get_eph_both_fail():
   
   # Use a mock to not depend on eph functions
   with patch("src.eph.jpl_eph", side_effect=Exception("JPL failed")) as mock_jpl, patch("src.eph.mpc_eph", side_effect=Exception("MPC failed")) as mock_mpc:
-    result_eph, result_err = get_eph("Ceres", epoch, ["JPL", "MPC"])
+    result_eph = get_eph("Ceres", epoch, ["JPL", "MPC"])
   
   # Verify that both eph functions were called
   mock_mpc.assert_called_once_with("Ceres", epoch)
@@ -349,4 +342,3 @@ def test_get_eph_both_fail():
   
   # The results must be none
   assert result_eph is None
-  assert result_err is None
