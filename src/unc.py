@@ -25,5 +25,14 @@ def mpc_unc(err_row, method="sqr"):
     case "sqr":
       var = (err_row['Uncertainty 3sig'] / 3) ** 2
       return np.diag([var, var])
+    case "cov":
+      var = (err_row['Uncertainty 3sig'] / 3) ** 2
+      theta = np.deg2rad(err_row['Unc. P.A.'])
+      mat = np.diag([var, var])
+      rot = np.array([
+        [np.cos(theta), -np.sin(theta)],
+        [np.sin(theta),  np.cos(theta)]
+      ])
+      return rot @ mat @ rot.T
     case _:
       raise ValueError(f"Unknown uncertainty method: {method}")
