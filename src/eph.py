@@ -9,6 +9,10 @@ from astroquery.mpc import MPC
 # Function to get ephemerides from MPC
 def mpc_eph(body, epoch):
   
+  # MPC cannot receive a list of epochs
+  if isinstance(epoch, list):
+    raise TypeError("MPC cannot receive a list of epochs. Please provide a dictionary with start, step, and number fields or use JPL.")
+  
   # Handle minutes
   if re.search(r'm$', epoch['step']):
     epoch['step'] = re.sub(r'm$', 'min', epoch['step'])
@@ -20,7 +24,7 @@ def mpc_eph(body, epoch):
     step=epoch['step'], 
     number=epoch['number']
   )
-  eph['Date_jd'] = Time(eph['Date']).jd1 # date must be in JD
+  eph['Date_jd'] = Time(eph['Date']).jd # date must be in JD
   
   # Check for uncertainty fields
   unc_cols = ['Uncertainty 3sig', 'Unc. P.A.']
@@ -44,6 +48,14 @@ def mpc_eph(body, epoch):
 
 # Function to get ephemerides from JPL
 def jpl_eph(body, epoch):
+  
+  # If epoch is a dictionary and number is 1, convert to JD and use it
+  if isinstance(epoch, dict) and epoch['number'] == 1:
+    epoch = Time(epoch['start']).jd
+  
+  # If epoch is a list, convert it to JD if not already in JD format
+  elif isinstance(epoch, list) and not isinstance(epoch[0], float):
+    epoch = Time(epoch).jd
   
   # Get ephemerides
   body = Horizons(id=body, epochs=epoch)

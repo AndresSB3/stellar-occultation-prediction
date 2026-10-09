@@ -25,6 +25,10 @@ class EphemTable(BaseEphem):
     if len(table) == 0:
       raise ValueError("No data found.")
     
+    # Check if enough data points are available for interpolation
+    if len(table) < 2:
+      raise ValueError("At least two ephemeris points are required for interpolation.")
+    
     # Data columns necessary
     cols = ['time', 'ra', 'dec', 'distance']
     

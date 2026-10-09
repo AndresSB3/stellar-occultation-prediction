@@ -18,12 +18,15 @@ def handle_diameter(body, token, verbose=False):
     if bool(search_result['Value']):
       print(f'Diameter found for {body.name}: {search_result["Value"]} km')
       body.diameter = search_result["Value"]
+      return search_result["Value"]
     else:
       print(f'Diameter not found for {body.name}, executing fallback...')
       values = get_range(body.name)
       print(f'The diameter of the object is most likely between {values[0]} and {values[1]} km.')
+      return values
   else:
     print(f'Diameter for {body.name} exists: {body.diameter}')
+    return body.diameter.value
 
     
 def get_range(name):

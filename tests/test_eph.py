@@ -59,11 +59,46 @@ def test_mpc_eph_date_jd():
     result = mpc_eph("Ceres", epoch)
 
   # Convert expected result to time table from astropy
-  expected = Time(fake_eph["Date"]).jd1
+  expected = Time(fake_eph["Date"]).jd
 
   # Verify the result
-  np.testing.assert_allclose(result["time"], expected)
-  
+  np.testing.assert_allclose(result["time"], expected)  
+
+# Test querying a single date with MPC
+def test_mpc_eph_single_date():
+
+  # Testing epoch with a single date
+  epoch = {
+    "start": "2026-09-09 00:00:00",
+    "step": "1min",
+    "number": 1
+  }
+  fake_eph = Table({
+    "Date": ["2026-09-09 00:00:00"],
+    "RA": [100.0],
+    "Dec": [20.0],
+    "Delta": [1.0],
+  })
+
+  # Use mock to not depend on external queries
+  with patch("src.eph.MPC.get_ephemeris", return_value=fake_eph) as mock_get_ephemeris:
+    result = mpc_eph("Ceres", epoch)
+
+  # Verify that MPC was called with number=1
+  mock_get_ephemeris.assert_called_once_with(
+    "Ceres",
+    start="2026-09-09 00:00:00",
+    step="1min",
+    number=1
+  )
+
+  # Verify that only one ephemeris was returned
+  assert len(result) == 1
+
+  # Verify that the requested date was converted to JD
+  expected = Time("2026-09-09 00:00:00").jd
+  np.testing.assert_allclose(result["time"], [expected])
+
 # Test error treatment in mpc eph when error exists
 def test_mpc_eph_uncertainty_available():
 
@@ -154,6 +189,100 @@ def test_jpl_eph():
 
   # Use the fake eph as the return value from ephemerides method in the horizons mock and verify it was called once with no arguments
   mock_horizons.return_value.ephemerides.assert_called_once_with()
+
+# Test conversion of a single normal date to JD
+def test_jpl_eph_single_date_to_jd():
+
+  # Testing epoch with a single date in normal format
+  epoch = {
+    "start": "2026-09-09 00:00:00",
+    "number": 1
+  }
+  fake_eph = Table({
+    "datetime_jd": [2461293.5],
+    "RA": [100.0],
+    "DEC": [20.0],
+    "delta": [1.0],
+  })
+
+  # Expected JD conversion
+  expected_epoch = Time(epoch["start"]).jd
+
+  # Use mock to not depend on external instantiation
+  with patch("src.eph.Horizons") as mock_horizons:
+    mock_horizons.return_value.ephemerides.return_value = fake_eph
+    _ = jpl_eph("Ceres", epoch)
+
+  # Verify that the normal date was converted to JD
+  mock_horizons.assert_called_once_with(
+    id="Ceres",
+    epochs=expected_epoch
+  )
+
+# Test conversion of a list of normal dates to JD
+def test_jpl_eph_date_list_to_jd():
+
+  # Testing epoch with a list of dates in normal format
+  epoch = [
+    "2026-09-09 00:00:00",
+    "2026-09-09 01:00:00",
+  ]
+
+  fake_eph = Table({
+    "datetime_jd": [2461292.5, 2461292.54166667],
+    "RA": [100.0, 100.1],
+    "DEC": [20.0, 20.1],
+    "delta": [1.0, 1.0],
+  })
+
+  # Expected JD conversion
+  expected_epoch = Time(epoch).jd
+
+  # Use mock to not depend on external instantiation
+  with patch("src.eph.Horizons") as mock_horizons:
+    mock_horizons.return_value.ephemerides.return_value = fake_eph
+    _ = jpl_eph("Ceres", epoch)
+
+  # Verify that Horizons was called only once
+  mock_horizons.assert_called_once()
+
+  # Get the arguments used to call Horizons
+  kwargs = mock_horizons.call_args.kwargs
+
+  # Verify the body
+  assert kwargs["id"] == "Ceres"
+
+  # Verify that the normal dates were converted to JD
+  np.testing.assert_allclose(
+    kwargs["epochs"],
+    expected_epoch
+  )
+  
+# Test that a list already in JD format is not converted
+def test_jpl_eph_jd_list_unchanged():
+
+  # Testing epoch already in JD format
+  epoch = [
+    2461293.5,
+    2461293.500694444,
+  ]
+  fake_eph = Table({
+    "datetime_jd": [2461293.5, 2461293.500694444],
+    "RA": [100.0, 100.1],
+    "DEC": [20.0, 20.1],
+    "delta": [1.0, 1.0],
+  })
+
+  # Use mock to not depend on external instantiation
+  with patch("src.eph.Horizons") as mock_horizons:
+    mock_horizons.return_value.ephemerides.return_value = fake_eph
+    _ = jpl_eph("Ceres", epoch)
+
+  # Verify that the JD list was passed unchanged
+  mock_horizons.assert_called_once_with(
+    id="Ceres",
+    epochs=epoch
+  )
 
 # Test when the uncertainty is not available for JPL
 def test_jpl_eph_uncertainty_unavailable():
