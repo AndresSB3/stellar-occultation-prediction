@@ -14,7 +14,7 @@ data_dir = root_dir / "data"
 def get_config():
   
   # Get settings' directory
-  settings_dir = config_dir / "settings.json"
+  settings_dir = config_dir / "settings.json" 
 
   # Open JSON file
   with open(settings_dir, "r") as file:

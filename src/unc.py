@@ -27,7 +27,7 @@ def mpc_unc(err_row, method="sqr"):
       return np.diag([var, var])
     case "cov":
       var = (err_row['Uncertainty 3sig'] / 3) ** 2
-      theta = np.deg2rad(err_row['Unc. P.A.'])
+      theta = np.deg2rad(90 - err_row['Unc. P.A.']) # The angle is measured from north to east, therefore we must use the complement
       mat = np.diag([var, var])
       rot = np.array([
         [np.cos(theta), -np.sin(theta)],
