@@ -1,6 +1,6 @@
 {
   "body": {
-    "id": null,
+    "id": "2011 YN61",
     "fields": {
       "object_type": "asteroid",
       "critical_list_numbered_object": null,
@@ -11,7 +11,12 @@
     }
   },
   "database": ["JPL"],
-  "epoch": ["2026-08-25", "2026-08-26", "2026-09-01", "2026-09-05", "2026-09-09"],
+  "epoch": {
+    "start": "2026-08-25",
+    "stop": "2026-09-09",
+    "step": "1day",
+    "number": 15
+  },
   "observer": {
     "code": "G37",
     "coord": null

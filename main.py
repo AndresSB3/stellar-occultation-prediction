@@ -38,16 +38,17 @@ def main(verbose=False, update=False):
     diameter = handle_diameter(body, settings['ADS_key'])
     
     
-  print('Ephemerides extraction completed.')
+  # print('Ephemerides extraction completed.')
   
-  if isinstance(epoch, dict):
-    eph_table.table.to_pandas().to_csv(f'output/{rock}_{settings["body"]["fields"]["state"]}_{epoch["start"]}_{epoch["stop"]}_{epoch["step"]}_{diameter}.csv', index=False)
-  elif isinstance(epoch, list):
-    eph_table.table.to_pandas().to_csv(f'output/{rock}_{settings["body"]["fields"]["state"]}_{epoch[0]}_{epoch[-1]}_{len(epoch)}_{diameter}.csv', index=False)
+  # if isinstance(epoch, dict):
+  #   eph_table.table.to_pandas().to_csv(f'output/{rock}_{settings["body"]["fields"]["state"]}_{epoch["start"]}_{epoch["stop"]}_{epoch["step"]}_{diameter}.csv', index=False)
+  # elif isinstance(epoch, list):
+  #   eph_table.table.to_pandas().to_csv(f'output/{rock}_{settings["body"]["fields"]["state"]}_{epoch[0]}_{epoch[-1]}_{len(epoch)}_{diameter}.csv', index=False)
   
-  print('Ephemerides saved to output folder.')
+  # print('Ephemerides saved to output folder.')
   
-  print(eph_table.table)
+  # print(eph_table.table)
+  print(diameter)
 
 if __name__ == "__main__":
   main(verbose=True, update=False)

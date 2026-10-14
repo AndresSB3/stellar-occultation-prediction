@@ -14,9 +14,10 @@ def diameter_exists(body):
 def handle_diameter(body, token, verbose=False):
   if not diameter_exists(body):
     print(f'Diameter for {body.name} does not exist. Searching for diameter...')
-    search_result = find_diameter([body.name], amount=500, token=token, verbose=verbose)
+    name = re.sub(r'(.+\()(.+)(\))', r'\2', body.name) # Handle designation
+    search_result = find_diameter([name], amount=500, token=token, verbose=verbose)
     if bool(search_result['Value']):
-      print(f'Diameter found for {body.name}: {search_result["Value"]} km')
+      print(f'Diameter found for {name}: {search_result["Value"]} km')
       body.diameter = search_result["Value"]
       return search_result["Value"]
     else:
@@ -35,7 +36,7 @@ def get_range(name):
   asteroids = get_localdatabase()
   
   # Handle designation
-  name = re.sub(r'(\()(.+)(\))', r'\2', name)
+  name = re.sub(r'(.+\()(.+)(\))', r'\2', name)
   
   # Specific series for given name
   series = asteroids[asteroids['designation'] == name]
