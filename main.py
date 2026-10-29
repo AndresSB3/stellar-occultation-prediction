@@ -1,45 +1,7 @@
-from sora import Body
-
-# from unc import jpl_unc, mpc_unc
 from occultations.core.defaulter import default
-from occultations.core.diameter import handle_diameter
-from occultations.core.eph import get_eph
-from occultations.core.ephem_table import EphemTable
+from occultations.core.general import run
 from occultations.core.local_config import get_config, update_localdatabase
 
-
-def run(settings, verbose=False):
-  
-  # Extract body and epoch from settings
-  bodies = settings['body']['id']
-  epoch = settings['epoch']
-  
-  # Get object ephemerides
-  for rock in bodies:
-    
-    # Get ephemerides and its error from the corresponding database
-    eph = get_eph(rock, epoch, settings['database'], verbose=verbose)
-    
-    # Instantiate ephemerides to EphemTable
-    eph_table = EphemTable(eph)
-    
-    # Body instantiation
-    body = Body(rock)
-    
-    # Check if it has a diameter
-    diameter = handle_diameter(body, settings['ADS_key'])
-    
-    
-  print('Ephemerides extraction completed.')
-  
-  if isinstance(epoch, dict):
-    eph_table.table.to_pandas().to_csv(f'output/{rock}_{settings["body"]["fields"]["state"]}_{epoch["start"]}_{epoch["stop"]}_{epoch["step"]}_{diameter}.csv', index=False)
-  elif isinstance(epoch, list):
-    eph_table.table.to_pandas().to_csv(f'output/{rock}_{settings["body"]["fields"]["state"]}_{epoch[0]}_{epoch[-1]}_{len(epoch)}_{diameter}.csv', index=False)
-  
-  print('Ephemerides saved to output folder.')
-  
-  print(diameter)
 
 def main(verbose=False, update=False):
   

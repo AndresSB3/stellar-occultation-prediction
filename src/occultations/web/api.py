@@ -5,6 +5,9 @@ from fastapi import FastAPI
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
+from occultations.core.defaulter import default
+from occultations.core.general import run
+
 # Paths
 STATIC_DIR = Path(__file__).parent / "static"
 HTML_FILE = STATIC_DIR / "index.html"
@@ -33,4 +36,19 @@ async def receive_config(config: dict):
     "status": "success",
     "message": "Configuration received successfully",
     "received": config
+  }
+  
+@app.post("/api/run")
+def run_pipeline(config: dict):
+  
+  # Default settings
+  settings = default(config)
+  
+  # Run pipeline
+  run(settings)
+  
+  # Confirm completion
+  return {
+    "status": "success",
+    "message": "Ephemerides generated successfully"
   }
