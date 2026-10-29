@@ -1,0 +1,36 @@
+.main-container {
+  display: grid;
+  row-gap: 50px;
+}
+
+.body-container, 
+.database-container, 
+.epoch-container, 
+.observer-container, 
+.others-container {
+  padding: 15px 20px;
+  border: 2px solid rgb(159, 178, 201);
+  border-radius: 10px;
+  display: grid;
+  row-gap: 20px;
+}
+
+.epoch-step-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.buttons-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+}
+
+.database-container, 
+.others-container {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr;
+  column-gap: 15px;
+  row-gap: 10px;
+  align-items: center;
+}

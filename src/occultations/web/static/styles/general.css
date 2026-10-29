@@ -1,0 +1,33 @@
+body {
+  padding: 10px 20px 100px 20px;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+select, 
+input, 
+textarea {
+  border: 1px solid rgb(174, 174, 174);
+}
+
+textarea {
+  height: 200px;
+}
+
+button {
+  padding: 15px;
+  background-color: rgb(163, 195, 234);
+  border: 1px solid black;
+  border-radius: 5px;
+  cursor: pointer;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 16px;
+}
+
+button:hover {
+  background-color: rgb(145, 173, 205);
+  color: white;
+}
+
+button:focus {
+  background-color: rgb(114, 143, 175);
+}

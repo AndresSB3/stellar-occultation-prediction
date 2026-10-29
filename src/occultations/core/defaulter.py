@@ -1,7 +1,7 @@
 import astropy.units as u
 from astropy.time import Time
 
-from src.local_config import get_localdatabase
+from occultations.core.local_config import get_localdatabase
 
 # Functions to standardize input data
 

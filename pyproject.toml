@@ -10,6 +10,7 @@ dependencies = [
     "body-diameter-search @ git+https://github.com/AndresSB3/body-diameter-search.git",
     "cartopy>=0.25.0",
     "click>=8.4.2",
+    "fastapi>=0.162.0",
     "ipykernel>=7.3.0",
     "pandas>=3.0.3",
     "pyerfa>=2.0.1.5",
@@ -20,4 +21,15 @@ dependencies = [
     "shapely>=2.1.2",
     "sora-astro>=0.3.2.post2",
     "spiceypy>=8.1.2",
+    "uvicorn[standard]>=0.54.0",
 ]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/occultations"]
+
+[tool.hatch.metadata]
+allow-direct-references = true

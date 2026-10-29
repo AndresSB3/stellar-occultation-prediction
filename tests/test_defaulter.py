@@ -3,7 +3,7 @@ from unittest.mock import patch
 import pandas as pd
 import pytest
 
-from src.defaulter import _search_bodies, default
+from occultations.core.defaulter import _search_bodies, default
 
 
 @pytest.fixture
@@ -58,7 +58,7 @@ def test_existing_values_are_preserved(settings):
 def test_default_body_ids(settings):
 
   # We use a mock to simulate a list of asteroids instead of relying in the local database or other functions
-  with patch("src.defaulter._search_bodies", return_value=["Ceres", "Vesta"]):
+  with patch("occultations.core.defaulter._search_bodies", return_value=["Ceres", "Vesta"]):
     result = default(settings)
 
   assert result["body"]["id"] == ["Ceres", "Vesta"]
@@ -87,7 +87,7 @@ def test_search_bodies_family():
   }
 
   # Use a mock to test search bodies individually without relying on local database
-  with patch("src.defaulter.get_localdatabase", return_value=fake_database):
+  with patch("occultations.core.defaulter.get_localdatabase", return_value=fake_database):
     result = _search_bodies(fields)
 
   # We expect only two asteroids as there are only two mbas
@@ -117,7 +117,7 @@ def test_search_bodies_limit():
   }
 
   # Use a mock to not depend on local data
-  with patch("src.defaulter.get_localdatabase", return_value=fake_database):
+  with patch("occultations.core.defaulter.get_localdatabase", return_value=fake_database):
     result = _search_bodies(fields)
 
   # Because of limit = 1, we expect only one result
@@ -145,7 +145,7 @@ def test_search_bodies_limit_greater_than_candidates():
   }
 
   # Use a mock to test body searching without depending on local data
-  with patch("src.defaulter.get_localdatabase", return_value=fake_database):
+  with patch("occultations.core.defaulter.get_localdatabase", return_value=fake_database):
     result = _search_bodies(fields)
 
   # If the amount of candidates is lower than the limit, it must return all candidates
@@ -171,7 +171,7 @@ def test_search_bodies_no_candidates():
   }
 
   # Use a mock to not depend on local data
-  with patch("src.defaulter.get_localdatabase", return_value=fake_database):
+  with patch("occultations.core.defaulter.get_localdatabase", return_value=fake_database):
     result = _search_bodies(fields)
 
   assert result == []

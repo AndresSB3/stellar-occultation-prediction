@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from src.unc import jpl_unc, mpc_unc
+from occultations.core.unc import jpl_unc, mpc_unc
 
 
 # Test invalid methods

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interfaz de Usuario</title>
+  <link rel="stylesheet" href="/static/styles/general.css">
+  <link rel="stylesheet" href="/static/styles/container.css">
+  <link rel="stylesheet" href="/static/styles/inputs.css">
+  <link rel="stylesheet" href="/static/styles/instructions.css">
+</head>
+
+<body>
+  <h1>Object Ephemerides Generator</h1>
+
+  <div class="main-container">
+
+    <div class="body-container">
+
+      <div class="body-instructions">
+        <p>Target Body</p>
+        <select class="js-body-selection">
+          <option value="ids">Search with identifiers</option>
+          <option value="filters">Search with filters</option>
+        </select>
+      </div>
+
+      <div class="body-inputs">
+
+        <div class="body-inputs-ids">
+          <textarea class="body-ids"></textarea>
+        </div>
+        
+        <div class="body-inputs-filters">
+
+          <label for="body-type">Type:</label>
+          <select class="body-type" multiple>
+            <option value="" selected>--select--</option>
+            <option value="asteroid">Asteroid</option>
+            <option value="comet">Comet</option>
+          </select>
+
+          <label for="body-family">Family:</label>
+          <select class="body-family" multiple>
+            <option value="is_ast" selected>--select--</option>
+            <option value="is_neo">Near-Earth Object</option>
+            <option value="is_mca">Mars-Crossing Asteroid</option>
+            <option value="is_mba">Main-Belt Asteroid</option>
+            <option value="is_tjn">Jupiter Trojan</option>
+            <option value="is_cen">Centaur</option>
+            <option value="is_tno">Trans-Neptunian Object</option>
+            <option value="is_paa">Parabolic Asteroid</option>
+            <option value="is_hya">Hyperbolic Asteroid</option>
+          </select>
+
+          <label for="body-status">Status:</label>
+          <select class="body-status" multiple>
+            <option value="" selected>--select--</option>
+            <option value="is_provisional">Provisional</option>
+            <option value="is_numbered">Numbered</option>
+          </select>
+
+          <label for="body-uncertainty">Orbit Uncertainty:</label>
+          <select class="body-uncertainty" multiple>
+            <option value="" selected>--select--</option>
+            <option value="0">0</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+          </select>
+
+          <label>Limit:</label>
+          <input class="body-limit">
+        </div>
+      </div>
+    </div>
+
+    <div class="database-container">
+      <label>Ephemeris Service:</label>
+      <select class="databases" multiple>
+        <option value="" selected>--select--</option>
+        <option value="JPL">Horizons Service</option>
+        <option value="MPC">Minor Planet Ephemeris Service</option>
+      </select>
+    </div>
+
+    <div class="epoch-container">
+
+      <div class="epoch-instructions">
+        <label>Target Epoch</label>
+        <select class="js-epoch-selection">
+          <option value="range">Range of dates</option>
+          <option value="list">List of julian dates</option>
+        </select>
+      </div>
+
+      <div class="epoch-inputs">
+
+        <div class="epoch-inputs-list">
+          <textarea class="epoch-list"></textarea>
+        </div>
+        
+        <div class="epoch-inputs-range">
+          <label for="epoch-start">Start:</label>
+          <input id="epoch-start" type="date">
+
+          <label for="epoch-stop">Stop:</label>
+          <input id="epoch-stop" type="date">
+          
+          <label for="epoch-step">Step:</label>
+          <div class="epoch-step-container">
+            <input id="epoch-step" type="number">
+            <select class="epoch-step-units">
+              <option value="s">Seconds</option>
+              <option value="min">Minutes</option>
+              <option value="h">Hours</option>
+              <option value="day">Days</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="observer-container">
+
+      <div class="observer-instructions">
+        <label>Observer Location:</label>
+        <select class="js-observer-selection">
+          <option value="code">Minor Planet Center Code</option>
+          <option value="coord">Earth Coordinates</option>
+        </select>
+      </div>
+
+      <div class="observer-inputs">
+
+        <div class="observer-inputs-codes">
+          <textarea class="observer-codes"></textarea>
+        </div>
+        
+        <div class="observer-inputs-coords">
+          <label>Latitude:</label>
+          <input type="number" class="observer-latitude">
+          <label>Longitude:</label>
+          <input type="number" class="observer-longitude">
+          <label>Altitude:</label>
+          <input type="number" class="observer-altitude">
+        </div>
+
+      </div>
+    </div>
+
+    <div class="others-container">
+      <label>Limit Magnitude:</label>
+      <input type="number" class="limit-magnitude">
+
+      <label>Exposition Time:</label>
+      <input type="number" class="exposition-time">
+
+      <label>ADS key:</label>
+      <input type="password" class="ads-key">
+    </div>
+
+    <div class="buttons-container">
+      <button type="button" id="upload-config">
+        Upload JSON Configurations
+      </button>
+      <button type="button" id="generate-ephemerides">
+        Generate Ephemerides
+      </button>
+    </div>
+  </div>
+  <script src="/static/scripts/interactions.js"></script>
+  <script src="/static/scripts/extractionUtils.js"></script>
+  <script src="/static/scripts/extraction.js"></script>
+  <script src="/static/scripts/communication.js"></script>
+</body>
+</html>

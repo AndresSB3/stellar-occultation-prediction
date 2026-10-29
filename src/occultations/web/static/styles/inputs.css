@@ -1,0 +1,18 @@
+.body-inputs-ids, 
+.body-inputs-filters, 
+.epoch-inputs-list, 
+.epoch-inputs-range, 
+.observer-inputs-codes, 
+.observer-inputs-coords {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr;
+  column-gap: 15px;
+  row-gap: 10px;
+  align-items: center;
+}
+
+.body-inputs-filters, 
+.epoch-inputs-list, 
+.observer-inputs-coords {
+  display: none;
+}

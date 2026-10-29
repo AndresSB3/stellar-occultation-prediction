@@ -5,7 +5,9 @@ import numpy as np
 import pandas as pd
 import requests
 
-src_dir = Path(__file__).resolve().parent
+core_dir = Path(__file__).resolve().parent
+occ_dir = core_dir.parent
+src_dir = occ_dir.parent
 root_dir = src_dir.parent
 config_dir = root_dir / "config"
 data_dir = root_dir / "data"

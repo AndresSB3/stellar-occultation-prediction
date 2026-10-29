@@ -4,7 +4,7 @@ import numpy as np
 from astropy.table import MaskedColumn, Table
 from astropy.time import Time
 
-from src.eph import get_eph, jpl_eph, mpc_eph
+from occultations.core.eph import get_eph, jpl_eph, mpc_eph
 
 
 # Test if the "m" formatting will be converted to "min"
@@ -24,7 +24,7 @@ def test_mpc_eph_step_minutes():
   })
 
   # Use mock to not depend on queries of external databases
-  with patch("src.eph.MPC.get_ephemeris", return_value=fake_eph) as mock_get_ephemeris:
+  with patch("occultations.core.eph.MPC.get_ephemeris", return_value=fake_eph) as mock_get_ephemeris:
     mpc_eph("Ceres", epoch)
 
   # Check that the get_ephemeris function was called with the following parameters ("min" format corrected)
@@ -55,7 +55,7 @@ def test_mpc_eph_date_jd():
   })
 
   # Use mock to not depend on external queries
-  with patch("src.eph.MPC.get_ephemeris", return_value=fake_eph):   
+  with patch("occultations.core.eph.MPC.get_ephemeris", return_value=fake_eph):   
     result = mpc_eph("Ceres", epoch)
 
   # Convert expected result to time table from astropy
@@ -81,7 +81,7 @@ def test_mpc_eph_single_date():
   })
 
   # Use mock to not depend on external queries
-  with patch("src.eph.MPC.get_ephemeris", return_value=fake_eph) as mock_get_ephemeris:
+  with patch("occultations.core.eph.MPC.get_ephemeris", return_value=fake_eph) as mock_get_ephemeris:
     result = mpc_eph("Ceres", epoch)
 
   # Verify that MPC was called with number=1
@@ -118,7 +118,7 @@ def test_mpc_eph_uncertainty_available():
   })
 
   # Use mock to not depend on external queries
-  with patch("src.eph.MPC.get_ephemeris", return_value=fake_eph):
+  with patch("occultations.core.eph.MPC.get_ephemeris", return_value=fake_eph):
     result = mpc_eph("Ceres", epoch)
 
   # Error must not be none
@@ -149,7 +149,7 @@ def test_mpc_eph_uncertainty_unavailable():
   })
 
   # Use mock to not depend on external queries
-  with patch("src.eph.MPC.get_ephemeris", return_value=fake_eph):
+  with patch("occultations.core.eph.MPC.get_ephemeris", return_value=fake_eph):
     result = mpc_eph("Ceres", epoch)
 
   # The error columns must not be in the table
@@ -173,7 +173,7 @@ def test_jpl_eph():
     "delta": [1.0, 1.0],
   })
   fake_horizons = patch(
-    "src.eph.Horizons"
+    "occultations.core.eph.Horizons"
   )
 
   # Use mock to not depend on the instantiation of an object
@@ -209,7 +209,7 @@ def test_jpl_eph_single_date_to_jd():
   expected_epoch = Time(epoch["start"]).jd
 
   # Use mock to not depend on external instantiation
-  with patch("src.eph.Horizons") as mock_horizons:
+  with patch("occultations.core.eph.Horizons") as mock_horizons:
     mock_horizons.return_value.ephemerides.return_value = fake_eph
     _ = jpl_eph("Ceres", epoch)
 
@@ -239,7 +239,7 @@ def test_jpl_eph_date_list_to_jd():
   expected_epoch = Time(epoch).jd
 
   # Use mock to not depend on external instantiation
-  with patch("src.eph.Horizons") as mock_horizons:
+  with patch("occultations.core.eph.Horizons") as mock_horizons:
     mock_horizons.return_value.ephemerides.return_value = fake_eph
     _ = jpl_eph("Ceres", epoch)
 
@@ -274,7 +274,7 @@ def test_jpl_eph_jd_list_unchanged():
   })
 
   # Use mock to not depend on external instantiation
-  with patch("src.eph.Horizons") as mock_horizons:
+  with patch("occultations.core.eph.Horizons") as mock_horizons:
     mock_horizons.return_value.ephemerides.return_value = fake_eph
     _ = jpl_eph("Ceres", epoch)
 
@@ -302,7 +302,7 @@ def test_jpl_eph_uncertainty_unavailable():
   })
 
   # Use mock to not depend on external instantiation
-  with patch("src.eph.Horizons") as mock_horizons:
+  with patch("occultations.core.eph.Horizons") as mock_horizons:
     
     # Use fake_eph as return value when calling the ephemerides method
     mock_horizons.return_value.ephemerides.return_value = fake_eph
@@ -341,7 +341,7 @@ def test_jpl_eph_uncertainty_masked():
   fake_eph["Theta_3sigma"] = MaskedColumn([1.0, 1.0], mask=[True, True])
 
   # Use mock to not depend on external instantiation
-  with patch("src.eph.Horizons") as mock_horizons:
+  with patch("occultations.core.eph.Horizons") as mock_horizons:
     
     # Use fake eph as output for mock method ephemerides()
     mock_horizons.return_value.ephemerides.return_value = fake_eph
@@ -364,7 +364,7 @@ def test_get_eph_jpl_success():
   fake_eph = "fake_jpl_eph"
 
   # Use a mock to not depend on eph function
-  with patch("src.eph.jpl_eph", return_value=fake_eph) as mock_jpl, patch("src.eph.mpc_eph") as mock_mpc:
+  with patch("occultations.core.eph.jpl_eph", return_value=fake_eph) as mock_jpl, patch("occultations.core.eph.mpc_eph") as mock_mpc:
     result_eph = get_eph("Ceres", epoch, ["JPL"])
 
   # Verify that jpl_eph is called only once and with the following args
@@ -389,7 +389,7 @@ def test_get_eph_jpl_fail_mpc_success():
   fake_eph = "fake_mpc_eph"
   
   # Use a mock to not depend on eph functions
-  with patch("src.eph.jpl_eph", side_effect=Exception("JPL failed")) as mock_jpl, patch("src.eph.mpc_eph", return_value=fake_eph) as mock_mpc:
+  with patch("occultations.core.eph.jpl_eph", side_effect=Exception("JPL failed")) as mock_jpl, patch("occultations.core.eph.mpc_eph", return_value=fake_eph) as mock_mpc:
     result_eph = get_eph("Ceres", epoch, ["JPL", "MPC"])
   
   # Verify that jpl_eph was called once
@@ -414,7 +414,7 @@ def test_get_eph_mpc_success():
   fake_eph = "fake_mpc_eph"
 
   # Use a mock to not depend on eph functions
-  with patch("src.eph.mpc_eph", return_value=fake_eph) as mock_mpc, patch("src.eph.jpl_eph") as mock_jpl:
+  with patch("occultations.core.eph.mpc_eph", return_value=fake_eph) as mock_mpc, patch("occultations.core.eph.jpl_eph") as mock_jpl:
     result_eph = get_eph("Ceres", epoch, ["MPC"])
 
   # Verify that mpc_eph is called only once and with the following args
@@ -438,7 +438,7 @@ def test_get_eph_jpl_fail():
   }
 
   # Use a mock to not depend on eph function
-  with patch("src.eph.jpl_eph", side_effect=Exception("JPL failed")) as mock_jpl, patch("src.eph.mpc_eph") as mock_mpc:
+  with patch("occultations.core.eph.jpl_eph", side_effect=Exception("JPL failed")) as mock_jpl, patch("occultations.core.eph.mpc_eph") as mock_mpc:
     result_eph = get_eph("Ceres", epoch, ["JPL"])
 
   # Verify that jpl_eph is called only once and with the following args
@@ -462,7 +462,7 @@ def test_get_eph_both_fail():
   }
   
   # Use a mock to not depend on eph functions
-  with patch("src.eph.jpl_eph", side_effect=Exception("JPL failed")) as mock_jpl, patch("src.eph.mpc_eph", side_effect=Exception("MPC failed")) as mock_mpc:
+  with patch("occultations.core.eph.jpl_eph", side_effect=Exception("JPL failed")) as mock_jpl, patch("occultations.core.eph.mpc_eph", side_effect=Exception("MPC failed")) as mock_mpc:
     result_eph = get_eph("Ceres", epoch, ["JPL", "MPC"])
   
   # Verify that both eph functions were called

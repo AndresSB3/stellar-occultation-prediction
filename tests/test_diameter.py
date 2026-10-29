@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.diameter import diameter_exists, get_range, handle_diameter
+from occultations.core.diameter import diameter_exists, get_range, handle_diameter
 
 
 # Testing diameter object
@@ -61,7 +61,7 @@ def test_get_range(classification, expected):
   fake_database.loc[0, classification] = True
 
   # Use mock to not depend on local database
-  with patch("src.diameter.get_localdatabase", return_value=fake_database):
+  with patch("occultations.core.diameter.get_localdatabase", return_value=fake_database):
     result = get_range("Ceres")
 
   # We expect the function to return the corresponding range depending on the orbital family
@@ -82,7 +82,7 @@ def test_get_range_other():
   })
 
   # Mock to not depend on local database
-  with patch("src.diameter.get_localdatabase", return_value=fake_database):
+  with patch("occultations.core.diameter.get_localdatabase", return_value=fake_database):
     result = get_range("Ceres")
 
   # We expect the function to return the default diameter range (HYA, PAA, AST)
@@ -95,7 +95,7 @@ def test_handle_diameter_existing():
   body = FakeBody("Ceres", 900)
 
   # Mock both the find and ranges
-  with patch("src.diameter.find_diameter") as mock_find, patch("src.diameter.get_range") as mock_range:
+  with patch("occultations.core.diameter.find_diameter") as mock_find, patch("occultations.core.diameter.get_range") as mock_range:
     handle_diameter(body, token="fake_token")
 
   # Check that both mocks were never called, as the diameter does exist
@@ -112,7 +112,7 @@ def test_handle_diameter_search_found():
   search_result = {"Value": 939.4}
 
   # Mock the search result to not depend on the find_diameter tool
-  with patch("src.diameter.find_diameter", return_value=search_result) as mock_find:
+  with patch("occultations.core.diameter.find_diameter", return_value=search_result) as mock_find:
     handle_diameter(body, token="fake_token")
 
   # Verify that the mock was called only once
@@ -134,7 +134,7 @@ def test_handle_diameter_search_not_found():
   expected_range = (2.809, 5.778)
 
   # Mock the search and the range to not depend on external tools
-  with patch("src.diameter.find_diameter", return_value=search_result) as mock_find, patch("src.diameter.get_range", return_value=expected_range) as mock_range:
+  with patch("occultations.core.diameter.find_diameter", return_value=search_result) as mock_find, patch("occultations.core.diameter.get_range", return_value=expected_range) as mock_range:
     handle_diameter(body, token="fake_token")
 
   # Verify that find_diameter was called only once

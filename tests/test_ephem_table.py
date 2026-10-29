@@ -8,7 +8,7 @@ from astropy.table import Table
 from astropy.time import Time
 from scipy.interpolate import CubicSpline, PchipInterpolator, interp1d
 
-from src.ephem_table import EphemTable
+from occultations.core.ephem_table import EphemTable
 
 
 # Testing table ephemerides

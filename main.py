@@ -1,22 +1,14 @@
 from sora import Body
 
 # from unc import jpl_unc, mpc_unc
-from src.defaulter import default
-from src.diameter import handle_diameter
-from src.eph import get_eph
-from src.ephem_table import EphemTable
-from src.local_config import get_config, update_localdatabase
+from occultations.core.defaulter import default
+from occultations.core.diameter import handle_diameter
+from occultations.core.eph import get_eph
+from occultations.core.ephem_table import EphemTable
+from occultations.core.local_config import get_config, update_localdatabase
 
 
-def main(verbose=False, update=False):
-  
-  # Updating process
-  if update:
-    update_localdatabase()
-        
-  # Get and default settings
-  settings = get_config()
-  settings = default(settings)
+def run(settings, verbose=False):
   
   # Extract body and epoch from settings
   bodies = settings['body']['id']
@@ -38,17 +30,30 @@ def main(verbose=False, update=False):
     diameter = handle_diameter(body, settings['ADS_key'])
     
     
-  # print('Ephemerides extraction completed.')
+  print('Ephemerides extraction completed.')
   
-  # if isinstance(epoch, dict):
-  #   eph_table.table.to_pandas().to_csv(f'output/{rock}_{settings["body"]["fields"]["state"]}_{epoch["start"]}_{epoch["stop"]}_{epoch["step"]}_{diameter}.csv', index=False)
-  # elif isinstance(epoch, list):
-  #   eph_table.table.to_pandas().to_csv(f'output/{rock}_{settings["body"]["fields"]["state"]}_{epoch[0]}_{epoch[-1]}_{len(epoch)}_{diameter}.csv', index=False)
+  if isinstance(epoch, dict):
+    eph_table.table.to_pandas().to_csv(f'output/{rock}_{settings["body"]["fields"]["state"]}_{epoch["start"]}_{epoch["stop"]}_{epoch["step"]}_{diameter}.csv', index=False)
+  elif isinstance(epoch, list):
+    eph_table.table.to_pandas().to_csv(f'output/{rock}_{settings["body"]["fields"]["state"]}_{epoch[0]}_{epoch[-1]}_{len(epoch)}_{diameter}.csv', index=False)
   
-  # print('Ephemerides saved to output folder.')
+  print('Ephemerides saved to output folder.')
   
-  # print(eph_table.table)
   print(diameter)
+
+def main(verbose=False, update=False):
+  
+  # Updating process
+  if update:
+    update_localdatabase()
+        
+  # Get and default settings
+  settings = get_config()
+  settings = default(settings)
+  
+  # Run pipeline
+  run(settings, verbose)
+  
 
 if __name__ == "__main__":
   main(verbose=True, update=False)

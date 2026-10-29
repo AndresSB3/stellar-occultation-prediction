@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.local_config import (
+from occultations.core.local_config import (
   _update_mpcorb,
   classify_bodies,
   get_config,
@@ -126,7 +126,7 @@ def test_update_mpcorb(tmp_path):
   fake_content = b"fake MPCORB data"
 
   # Use a mock to not request every time a test is performed and to not alter the local database
-  with patch("src.local_config.requests.get") as mock_get, patch("src.local_config.data_dir", tmp_path):
+  with patch("occultations.core.local_config.requests.get") as mock_get, patch("occultations.core.local_config.data_dir", tmp_path):
     
     # Mock methods
     mock_response = mock_get.return_value
@@ -153,7 +153,7 @@ def test_update_mpcorb(tmp_path):
 def test_update_mpcorb_error(tmp_path):
 
   # Use a mock to not request or change local data
-  with patch("src.local_config.requests.get") as mock_get, patch("src.local_config.data_dir", tmp_path):
+  with patch("occultations.core.local_config.requests.get") as mock_get, patch("occultations.core.local_config.data_dir", tmp_path):
 
     # Mock the method
     mock_response = mock_get.return_value
@@ -201,7 +201,7 @@ def test_update_localdatabase(tmp_path):
   layout_file.write_text('{"colspecs": [], "names": []}')
 
   # Use mocks to not depend on local database and other functions
-  with patch("src.local_config.data_dir", data_dir), patch("src.local_config.config_dir", config_dir), patch("src.local_config.pd.read_fwf") as mock_read_fwf, patch("src.local_config.classify_bodies") as mock_classify:
+  with patch("occultations.core.local_config.data_dir", data_dir), patch("occultations.core.local_config.config_dir", config_dir), patch("occultations.core.local_config.pd.read_fwf") as mock_read_fwf, patch("occultations.core.local_config.classify_bodies") as mock_classify:
 
     # Fake dataframe returned by read_fwf
     fake_df = pd.DataFrame({"designation": ["Test"]})
@@ -243,7 +243,7 @@ def test_updatelocaldatabase_download(tmp_path):
   layout_file.write_text('{"colspecs": [], "names": []}')
   
   # Use mock to not depend on update_mpcorb function
-  with patch("src.local_config.data_dir", data_dir), patch("src.local_config.config_dir", config_dir), patch("src.local_config.pd.read_fwf") as mock_read_fwf, patch("src.local_config.classify_bodies") as mock_classify, patch("src.local_config._update_mpcorb") as mock_update:
+  with patch("occultations.core.local_config.data_dir", data_dir), patch("occultations.core.local_config.config_dir", config_dir), patch("occultations.core.local_config.pd.read_fwf") as mock_read_fwf, patch("occultations.core.local_config.classify_bodies") as mock_classify, patch("occultations.core.local_config._update_mpcorb") as mock_update:
     
     # Fake dataframe returned by read_fwf
     fake_df = pd.DataFrame({"designation": ["Test"]})
