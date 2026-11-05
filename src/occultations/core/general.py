@@ -8,24 +8,29 @@ from occultations.core.ephem_table import EphemTable
 
 def run(settings, verbose=False):
   
-  # Extract body and epoch from settings
+  # Extract settings data
   bodies = settings['body']['id']
   epoch = settings['epoch']
+  database = settings['database']
+  observer = settings['observer']
   
-  # Get object ephemerides
-  for rock in bodies:
-    
-    # Get ephemerides and its error from the corresponding database
-    eph = get_eph(rock, epoch, settings['database'], verbose=verbose)
-    
-    # Instantiate ephemerides to EphemTable
-    eph_table = EphemTable(eph)
-    
-    # Body instantiation
-    body = Body(rock)
-    
-    # Check if it has a diameter
-    diameter = handle_diameter(body, settings['ADS_key'])
+  # Loop through each observer
+  for obs in observer:
+  
+    # Loop through each body for each observer
+    for rock in bodies:
+      
+      # Get ephemerides and its error from the corresponding database
+      eph = get_eph(rock, epoch, database, obs, verbose=verbose)
+      
+      # Instantiate ephemerides to EphemTable
+      eph_table = EphemTable(eph)
+      
+      # Body instantiation
+      body = Body(rock)
+      
+      # Check if it has a diameter
+      diameter = handle_diameter(body, settings['ADS_key'])
     
     
   print('Ephemerides extraction completed.')

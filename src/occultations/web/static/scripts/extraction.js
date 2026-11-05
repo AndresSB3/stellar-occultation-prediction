@@ -75,9 +75,9 @@ function collectFormData() {
       observer = {
         code: null,
         coord: {
-          latitude: observerLatitude,
-          longitude: observerLongitude,
-          altitude: observerAltitude
+          lat: observerLatitude,
+          lon: observerLongitude,
+          elevation: observerAltitude
         }
       };
     }

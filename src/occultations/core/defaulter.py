@@ -40,14 +40,36 @@ def default(settings):
   # Default values
   if not settings['limit_magnitude']:
     settings['limit_magnitude'] = 16
+    
   if not settings['exposition_time']:
     settings['exposition_time'] = 5
+    
   if not settings['database']:
     settings['database'] = ["JPL", "MPC"]
   elif not isinstance(settings['database'], list):
     settings['database'] = [settings['database']]
-  if not settings['observer']['code'] and not settings['observer']['coord']:
-    settings['observer']['code'] = "geo"
+    
+  if isinstance(settings['observer'], list) and not settings['observer']:
+    settings['observer'] = [None]
+  elif not isinstance(settings['observer'], list):
+    if not settings['observer']['code'] and not settings['observer']['coord']:
+      settings['observer'] = [None]
+    elif not settings['observer']['coord']:
+      if not isinstance(settings['observer']['code'], list):
+        settings['observer']['code'] = [settings['observer']['code']]
+      else:
+        settings['observer'] = settings['observer']['code']
+    elif not settings['observer']['code']:
+      if not isinstance(settings['observer']['coord'], list):
+        settings['observer'] = [settings['observer']['coord']]
+      else:
+        settings['observer'] = settings['observer']['coord']
+    else:
+      if not isinstance(settings['observer']['code'], list):
+        settings['observer']['code'] = [settings['observer']['code']]
+      else:
+        settings['observer'] = settings['observer']['code']
+    
   if not settings['epoch']:
     settings['epoch'] = {
       "start": str(Time.now()),
@@ -55,6 +77,7 @@ def default(settings):
       "step": "1m",
       "number": 720
     }
+    
   if not settings['body']['id']:
     settings['body']['id'] = _search_bodies(settings['body']['fields'])
   elif not isinstance(settings['body']['id'], list):

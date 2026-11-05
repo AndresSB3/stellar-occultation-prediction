@@ -3,7 +3,8 @@
 .epoch-inputs-list, 
 .epoch-inputs-range, 
 .observer-inputs-codes, 
-.observer-inputs-coords {
+.observer-inputs-coords, 
+.observer-inputs-multiple {
   display: grid;
   grid-template-columns: 1fr 1.5fr;
   column-gap: 15px;
@@ -13,6 +14,7 @@
 
 .body-inputs-filters, 
 .epoch-inputs-list, 
-.observer-inputs-coords {
+.observer-inputs-coords, 
+.observer-inputs-multiple {
   display: none;
 }

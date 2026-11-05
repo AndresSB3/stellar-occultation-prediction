@@ -31,11 +31,17 @@ const observerSelectionElement = document.querySelector(".js-observer-selection"
 
 // When changing the value, display the necessary elements
 observerSelectionElement.onchange = () => {
-  if(observerSelectionElement.value == "coord") {
+  if(observerSelectionElement.value === "coord") {
     document.querySelector(".observer-inputs-coords").style.display = "grid";
     document.querySelector(".observer-inputs-codes").style.display = "none";
-  } else if(observerSelectionElement.value == "code") {
+    document.querySelector(".observer-inputs-multiple").style.display = "none";
+  } else if(observerSelectionElement.value === "code") {
     document.querySelector(".observer-inputs-coords").style.display = "none";
     document.querySelector(".observer-inputs-codes").style.display = "grid";
+    document.querySelector(".observer-inputs-multiple").style.display = "none";
+  } else if(observerSelectionElement.value === "multiple") {
+    document.querySelector(".observer-inputs-coords").style.display = "none";
+    document.querySelector(".observer-inputs-codes").style.display = "none";
+    document.querySelector(".observer-inputs-multiple").style.display = "grid";
   }
 };
