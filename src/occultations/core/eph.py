@@ -7,7 +7,7 @@ from astroquery.mpc import MPC
 
 
 # Function to get ephemerides from MPC
-def mpc_eph(body, epoch):
+def mpc_eph(body, epoch, obs_id=None):
   
   # MPC cannot receive a list of epochs
   if isinstance(epoch, list):
@@ -16,10 +16,21 @@ def mpc_eph(body, epoch):
   # Handle minutes
   if re.search(r'm$', epoch['step']):
     epoch['step'] = re.sub(r'm$', 'min', epoch['step'])
+    
+  # Handle observer
+  if isinstance(obs_id, dict):
+    location = [
+      obs_id['lon'] * u.deg,
+      obs_id['lat'] * u.deg,
+      obs_id['elevation'] * u.km
+    ]
+  else:
+    location = obs_id if obs_id is not None else '500'
   
   # Get ephemerides
   eph = MPC.get_ephemeris(
     body, 
+    location=location,
     start=epoch['start'], 
     step=epoch['step'], 
     number=epoch['number']
@@ -47,10 +58,10 @@ def mpc_eph(body, epoch):
   return data
 
 # Function to get ephemerides from JPL
-def jpl_eph(body, epoch):
+def jpl_eph(body, epoch, obs_id):
   
   # If epoch is a dictionary and number is 1, convert to JD and use it
-  if isinstance(epoch, dict) and epoch['number'] == 1:
+  if isinstance(epoch, dict) and epoch.get('number') == 1:
     epoch = Time(epoch['start']).jd
   
   # If epoch is a list, convert it to JD if not already in JD format
@@ -58,8 +69,8 @@ def jpl_eph(body, epoch):
     epoch = Time(epoch).jd
   
   # Get ephemerides
-  body = Horizons(id=body, epochs=epoch)
-  eph = body.ephemerides()
+  body = Horizons(id=body, epochs=epoch, location=obs_id)
+  eph = body.ephemerides(extra_precision=True, cache=False)
   
   # Expected uncertainty columns for jpl query
   unc_cols = ['RA_3sigma', 'DEC_3sigma', 'SMAA_3sigma', 'SMIA_3sigma', 'Theta_3sigma']
@@ -93,12 +104,12 @@ def jpl_eph(body, epoch):
   return data
 
 # Function to handle ephemerides retrieval based on settings
-def get_eph(body, epoch, database, verbose=False):
+def get_eph(body, epoch, database, obs_id=None, verbose=False):
 
   # JPL case
   if "JPL" in database:
     try:
-      eph = jpl_eph(body, epoch)
+      eph = jpl_eph(body, epoch, obs_id)
       if verbose:
         print(f'JPL query successful for {body}!')
     except Exception as e:
@@ -106,7 +117,7 @@ def get_eph(body, epoch, database, verbose=False):
         if verbose:
           print(f'JPL query failed. Presenting error:\n{e}\n\nQuerying MPC for {body}, wait a moment...')
         try:
-          eph = mpc_eph(body, epoch)
+          eph = mpc_eph(body, epoch, obs_id)
           if verbose:
             print(f'MPC query successful for {body}!')
         except Exception as e:
@@ -120,7 +131,7 @@ def get_eph(body, epoch, database, verbose=False):
           print(f'JPL query failed. Presenting error:\n{e}\n\n')
   else:
     try:
-      eph = mpc_eph(body, epoch)
+      eph = mpc_eph(body, epoch, obs_id)
       if verbose:
         print(f'MPC query successful for {body}!')
     except Exception as e:
