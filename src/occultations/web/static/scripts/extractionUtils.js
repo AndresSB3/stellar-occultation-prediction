@@ -1,6 +1,6 @@
 // Get values of selected options from selection elements ignoring blank options
 function getSelectedValues(selector) {
-  values = [...document.querySelector(selector).selectedOptions].map(option => option.value).filter(value => value !== "");
+  const values = [...document.querySelector(selector).selectedOptions].map(option => option.value).filter(value => value !== "");
   return values.length !== 0 ? values : null;
 }
 
@@ -66,6 +66,7 @@ function computeDateDifference() {
 
   // Convert to selected units
   const units = document.querySelector(".epoch-step-units").value;
+  let conversionFactor;
   switch (units) {
     case "s":
       conversionFactor = 1000;
@@ -86,4 +87,67 @@ function computeDateDifference() {
 
   // Return difference based on the given step (including the first date)
   return Math.floor(difference / step) + 1;
+}
+
+// Get observer from multiple selection element
+function parseObservers(text) {
+
+  // Variable for each line
+  const lines = text.split(/\r?\n/);
+
+  // Variable for observers
+  const observers = [];
+
+  // Iterate over lines
+  for (let i = 0; i < lines.length; i++) {
+
+    // Remove spaces at start and end of line
+    const line = lines[i].trim();
+
+    // Skip empty lines
+    if (!line) continue;
+
+    // Check if the line is an MPC observatory code
+    if (observatoryCodes.has(line)) {
+      observers.push(line);
+      continue;
+    }
+
+    // If not, they are geographic coordinates
+    const values = line.split(/[,\s]+/).map(Number);
+
+    // Verify number of coordinates
+    if ((values.length !== 3) || !values.every(Number.isFinite)) {
+      throw new Error(`Invalid observer at line ${i + 1}: ${line}`);
+    }
+
+    const [lon, lat, alt] = values;
+
+    // Validate geographic coordinates
+    if (lon < -180 || lon > 180) {
+      throw new Error(
+        `Longitude must be between -180° and 180° (line ${i + 1}).`
+      );
+    }
+    if (lat < -90 || lat > 90) {
+      throw new Error(
+        `Latitude must be between -90° and 90° (line ${i + 1}).`
+      );
+    }
+    if (alt < -1 || alt > 10) {
+      throw new Error(
+        `Elevation must be between -1 and 10 km (line ${i + 1}).`
+      );
+    }
+
+    // Add observer to list as an object
+    observers.push({
+      lon: lon,
+      lat: lat,
+      elevation: alt
+    });
+  }
+
+  // Return observers if not empty, else return null
+  return observers.length !== 0 ? observers : null;
 }

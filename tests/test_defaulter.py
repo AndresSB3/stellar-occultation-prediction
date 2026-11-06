@@ -22,10 +22,7 @@ def settings():
     },
     "database": None,
     "epoch": None,
-    "observer": {
-      "code": None,
-      "coord": None
-    },
+    "observer": None,
     "limit_magnitude": None,
     "exposition_time": None,
     "ADS_key": None
@@ -38,21 +35,21 @@ def test_default_values(settings):
   assert result['limit_magnitude'] == 16
   assert result['exposition_time'] == 5
   assert result['database'] == ['JPL', 'MPC']
-  assert result['observer']['code'] == "geo"
+  assert result['observer'] == [None]
   
 # Test choosing values
 def test_existing_values_are_preserved(settings):
   settings['limit_magnitude'] = 18
   settings['exposition_time'] = 10
   settings['database'] = ['MPC']
-  settings['observer']['code'] = 'G37'
+  settings['observer'] = ['G37']
 
   result = default(settings)
 
   assert result['limit_magnitude'] == 18
   assert result['exposition_time'] == 10
   assert result['database'] == ['MPC']
-  assert result['observer']['code'] == 'G37'
+  assert result['observer'] == ['G37']
 
 # Test default body ids
 def test_default_body_ids(settings):

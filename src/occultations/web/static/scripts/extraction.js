@@ -1,11 +1,6 @@
-// Build javascript object using the users inputs
-function collectFormData() {
-
-  // Get all selection values
-  const bodyMode = bodySelectionElement.value;
-  const epochMode = epochSelectionElement.value;
-  const observerMode = observerSelectionElement.value;
-
+// Function to get body data
+function collectBodyData(bodyMode) {
+  
   // Create body object depending on selection
   const body = bodyMode === "ids" 
     ? {
@@ -22,6 +17,11 @@ function collectFormData() {
         limit: getNumber(".body-limit")
       }
     };
+  return body;
+}
+
+// Function to get epoch data
+function collectEpochData(epochMode) {
 
   // Create epoch object depending on selection
   let epoch;
@@ -36,8 +36,7 @@ function collectFormData() {
     if (allEpochEmpty) {
       epoch = null;
     } else if (someEpochEmpty) {
-      alert("Please complete all epoch fields.");
-      return;
+      throw new Error("Please complete all epoch fields.");
     } else {
       epoch = {
         start: epochStart,
@@ -49,48 +48,118 @@ function collectFormData() {
   } else {
     epoch = getWrittenValues(".epoch-list");
   };
+  return epoch;
+}
+
+// Function to collect observer data
+function collectObserverData(observerMode) {
 
   // Create observer object depending on selection
-  let observer;
+
+  // Case code just get value from select
+  if (observerMode === "code") {
+    const code = document.querySelector(".observer-codes").value.trim();
+
+    if (!code) return null;
+
+    if (!observatoryCodes.has(code)) {
+      throw new Error(`Invalid observatory code: ${code}`);
+    }
+
+    return [code];
+  }
+
+  // Case coordinates just get values from input fields
   if (observerMode === "coord") {
 
-    // Get inputs
-    const observerLatitude = getNumber(".observer-latitude");
-    const observerLongitude = getNumber(".observer-longitude");
-    const observerAltitude = getNumber(".observer-altitude");
+    // Get coordinates
+    const lat = getNumber(".observer-latitude");
+    const lon = getNumber(".observer-longitude");
+    const alt = getNumber(".observer-altitude");
 
-    // Verify nulls
-    const allObserverEmpty = observerLatitude == null && observerLongitude == null && observerAltitude == null;
-    const someObserverEmpty = observerLatitude == null || observerLongitude == null || observerAltitude == null;
+    // Check emptiness
+    const allEmpty = lat === null && lon === null && alt === null;
+    const someEmpty = lat === null || lon === null || alt === null;
 
-    if (allObserverEmpty) {
-      observer = {
-        code: null,
-        coord: null
-      };
-    } else if(someObserverEmpty) {
-      alert("Please complete all observer fields.");
-      return;
-    } else {
-      observer = {
-        code: null,
-        coord: {
-          lat: observerLatitude,
-          lon: observerLongitude,
-          elevation: observerAltitude
-        }
-      };
+    // No coords
+    if (allEmpty) return null;
+
+    // Some coords empty
+    if (someEmpty) {
+      throw new Error("Please complete all observer fields.");
     }
-  } else {
-    observer = {
-      code: getWrittenValues(".observer-codes"),
-      coord: null 
+
+    // All coords available
+
+    // Validate geographic coordinates
+    if (lon < -180 || lon > 180) {
+      throw new Error(`Longitude must be between -180° and 180°.`);
     }
-  };
+    if (lat < -90 || lat > 90) {
+      throw new Error(`Latitude must be between -90° and 90°.`);
+    }
+    if (alt < -1 || alt > 10) {
+      throw new Error(`Elevation must be between -1 and 10 km.`);
+    }
 
-  // Create databse object
-  const database = getSelectedValues(".databases");
+    // Return observer as an object
+    return [{
+      lon: lon,
+      lat: lat,
+      elevation: alt
+    }];
+  }
 
+  // Case multiple just get values depending on each line
+  if (observerMode === "multiple") {
+    const text = document.querySelector(".observer-multiple").value;
+    return parseObservers(text);
+  }
+}
+
+// Build javascript object using the users inputs
+function collectFormData() {
+
+  // Get all selection values
+  const bodyMode = bodySelectionElement.value;
+  const epochMode = epochSelectionElement.value;
+  const observerMode = observerSelectionElement.value;
+
+  // Data values
+  let body, epoch, observer, database;
+
+  // Get body data
+  try {
+    body = collectBodyData(bodyMode);
+  } catch (error) {
+    alert(`Error collecting body data: ${error.message}`);
+    return;
+  }
+
+  // Get epoch data
+  try {
+    epoch = collectEpochData(epochMode);
+  } catch (error) {
+    alert(`Error collecting epoch data: ${error.message}`);
+    return;
+  }
+  
+  // Get observer data
+  try {
+    observer = collectObserverData(observerMode);
+  } catch (error) {
+    alert(`Error collecting observer data: ${error.message}`);
+    return;
+  }
+
+  // Create database object
+  try {
+    database = getSelectedValues(".databases");
+  } catch (error) {
+    alert(`Error collecting database data: ${error.message}`);
+    return;
+  }
+  
   // Return object
   return {
     body: body,

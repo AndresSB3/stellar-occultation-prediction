@@ -1,3 +1,5 @@
+// Dynamically show/hide input fields based on user selection
+
 // Get body selection element
 const bodySelectionElement = document.querySelector(".js-body-selection");
 

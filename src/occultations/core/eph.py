@@ -58,7 +58,7 @@ def mpc_eph(body, epoch, obs_id=None):
   return data
 
 # Function to get ephemerides from JPL
-def jpl_eph(body, epoch, obs_id):
+def jpl_eph(body, epoch, obs_id=None):
   
   # If epoch is a dictionary and number is 1, convert to JD and use it
   if isinstance(epoch, dict) and epoch.get('number') == 1:

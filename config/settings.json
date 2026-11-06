@@ -1,6 +1,6 @@
 {
   "body": {
-    "id": "2011 YN61",
+    "id": ["2011 YN61", "Ceres"],
     "fields": {
       "object_type": "asteroid",
       "critical_list_numbered_object": null,
@@ -17,10 +17,12 @@
     "step": "1day",
     "number": 15
   },
-  "observer": {
-    "code": "G37",
-    "coord": null
-  },
+  "observer": [
+    {"lon": 10, "lat": 20, "elevation": 2},
+    "G37",
+    {"lon": 100, "lat": 22, "elevation": 1},
+    "W83"
+  ],
   "limit_magnitude": null,
   "exposition_time": null,
   "ADS_key": null

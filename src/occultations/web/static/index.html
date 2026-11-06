@@ -141,9 +141,8 @@
       <div class="observer-inputs">
 
         <div class="observer-inputs-codes">
-          <select class="observer-code">
-            <option value="">Loading observatories...</option>
-          </select>
+          <input type="text" class="observer-codes" list="observatory-options" placeholder="Enter observatory code..." autocomplete="off">
+          <datalist id="observatory-options"></datalist>
         </div>
         
         <div class="observer-inputs-coords">
@@ -186,75 +185,6 @@
   <script src="/static/scripts/extractionUtils.js"></script>
   <script src="/static/scripts/extraction.js"></script>
   <script src="/static/scripts/communication.js"></script>
-  <script>
-
-    // Variable for codes link
-    const OBSERVATORY_URL = "https://ssp.imcce.fr/webservices/data/displayIAUObsCodes.php";
-
-    let observatoryCodes = new Set();
-
-    // Add an action when testing occurs
-    async function loadObservatoryCodes() {
-
-      // Variable for response
-      const response = await fetch(OBSERVATORY_URL);
-
-      // Check if the response is ok
-      if (!response.ok) {
-        throw new Error(`Could not load observatory codes. HTTP error! status: ${response.status}`);
-      }
-
-      // Save text from response
-      const text = await response.text();
-
-      // Save codes from data
-      observatoryCodes = new Set(
-        text.split(/\r?\n/)
-          .map(line => line.trim().split(/\s+/)[0])
-          .filter(code => /^[A-Z0-9]{3}$/.test(code))
-      );
-      return observatoryCodes;
-    };
-
-    // Populate the observatory codes select element
-    function populateObservatoryDropdown(codes) {
-
-      // Get the select element
-      const select = document.querySelector('.observer-code');
-
-      // Remove previous options
-      select.innerHTML = "";
-
-      // Create options
-      codes.forEach(code => {
-
-        // Create a new option element
-        const option = document.createElement('option');
-
-        // Set the value and text content of the option
-        option.value = code;
-        option.textContent = code;
-
-        // Append the option to the select element
-        select.appendChild(option);
-      });
-    };
-
-    // Load observatory codes and populate the dropdown
-    document.addEventListener('DOMContentLoaded', async () => {
-      try {
-
-        // Load observatory codes and populate the dropdown
-        const codes = await loadObservatoryCodes();
-        populateObservatoryDropdown([...codes].sort());
-      } catch (error) {
-
-        // Log the error and display a message in the dropdown
-        console.error('Error loading observatory codes:', error);
-        const select = document.querySelector('.observer-code');
-        select.innerHTML = "<option value=''>Error loading observatories</option>";
-      }
-    });
-  </script>
+  <script src="/static/scripts/codes.js"></script>
 </body>
 </html>

@@ -25,6 +25,9 @@ document.querySelector("#generate-ephemerides").addEventListener("click", async(
     // wait for the pipeline to finish
     const result = await response.json();
 
+    console.log("HTTP status:", response.status);
+    console.log("Server response:", result);
+
     // Verify request
     if (!response.ok) {
       throw new Error(result.detail || "Request failed");

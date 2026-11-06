@@ -52,23 +52,7 @@ def default(settings):
   if isinstance(settings['observer'], list) and not settings['observer']:
     settings['observer'] = [None]
   elif not isinstance(settings['observer'], list):
-    if not settings['observer']['code'] and not settings['observer']['coord']:
-      settings['observer'] = [None]
-    elif not settings['observer']['coord']:
-      if not isinstance(settings['observer']['code'], list):
-        settings['observer']['code'] = [settings['observer']['code']]
-      else:
-        settings['observer'] = settings['observer']['code']
-    elif not settings['observer']['code']:
-      if not isinstance(settings['observer']['coord'], list):
-        settings['observer'] = [settings['observer']['coord']]
-      else:
-        settings['observer'] = settings['observer']['coord']
-    else:
-      if not isinstance(settings['observer']['code'], list):
-        settings['observer']['code'] = [settings['observer']['code']]
-      else:
-        settings['observer'] = settings['observer']['code']
+    settings['observer'] = [settings['observer']]
     
   if not settings['epoch']:
     settings['epoch'] = {

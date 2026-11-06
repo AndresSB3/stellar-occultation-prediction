@@ -1,6 +1,8 @@
 from unittest.mock import patch
 
 import numpy as np
+import pytest
+from astropy import units as u
 from astropy.table import MaskedColumn, Table
 from astropy.time import Time
 
@@ -32,7 +34,8 @@ def test_mpc_eph_step_minutes():
     "Ceres",
     start="2026-09-09 00:00:00",
     step="1min",
-    number=10
+    number=10,
+    location='500'
   )
 
 # Test the correct querying of dates based on step and number
@@ -89,7 +92,8 @@ def test_mpc_eph_single_date():
     "Ceres",
     start="2026-09-09 00:00:00",
     step="1min",
-    number=1
+    number=1,
+    location='500'
   )
 
   # Verify that only one ephemeris was returned
@@ -184,11 +188,15 @@ def test_jpl_eph():
   # Verify that the Horizons() function was called only once with the following arguments
   mock_horizons.assert_called_once_with(
     id="Ceres",
-    epochs=epoch
+    epochs=epoch,
+    location=None
   )
 
   # Use the fake eph as the return value from ephemerides method in the horizons mock and verify it was called once with no arguments
-  mock_horizons.return_value.ephemerides.assert_called_once_with()
+  mock_horizons.return_value.ephemerides.assert_called_once_with(
+    extra_precision=True,
+    cache=False
+  )
 
 # Test conversion of a single normal date to JD
 def test_jpl_eph_single_date_to_jd():
@@ -216,7 +224,8 @@ def test_jpl_eph_single_date_to_jd():
   # Verify that the normal date was converted to JD
   mock_horizons.assert_called_once_with(
     id="Ceres",
-    epochs=expected_epoch
+    epochs=expected_epoch,
+    location=None
   )
 
 # Test conversion of a list of normal dates to JD
@@ -281,7 +290,8 @@ def test_jpl_eph_jd_list_unchanged():
   # Verify that the JD list was passed unchanged
   mock_horizons.assert_called_once_with(
     id="Ceres",
-    epochs=epoch
+    epochs=epoch,
+    location=None
   )
 
 # Test when the uncertainty is not available for JPL
@@ -368,7 +378,7 @@ def test_get_eph_jpl_success():
     result_eph = get_eph("Ceres", epoch, ["JPL"])
 
   # Verify that jpl_eph is called only once and with the following args
-  mock_jpl.assert_called_once_with("Ceres", epoch)
+  mock_jpl.assert_called_once_with("Ceres", epoch, None)
   
   # Verify that mpc_eph was NOT called as it is not in the databases inputted
   mock_mpc.assert_not_called()
@@ -393,10 +403,10 @@ def test_get_eph_jpl_fail_mpc_success():
     result_eph = get_eph("Ceres", epoch, ["JPL", "MPC"])
   
   # Verify that jpl_eph was called once
-  mock_jpl.assert_called_once_with("Ceres", epoch)
+  mock_jpl.assert_called_once_with("Ceres", epoch, None)
   
   # Verify that mpc_eph was also called
-  mock_mpc.assert_called_once_with("Ceres", epoch)
+  mock_mpc.assert_called_once_with("Ceres", epoch, None)
   
   # The returns must be the those of MPC
   assert result_eph == fake_eph
@@ -418,7 +428,7 @@ def test_get_eph_mpc_success():
     result_eph = get_eph("Ceres", epoch, ["MPC"])
 
   # Verify that mpc_eph is called only once and with the following args
-  mock_mpc.assert_called_once_with("Ceres", epoch)
+  mock_mpc.assert_called_once_with("Ceres", epoch, None)
   
   # Verify that jpl_eph was NOT called as it is not in the databases inputted
   mock_jpl.assert_not_called()
@@ -442,7 +452,7 @@ def test_get_eph_jpl_fail():
     result_eph = get_eph("Ceres", epoch, ["JPL"])
 
   # Verify that jpl_eph is called only once and with the following args
-  mock_jpl.assert_called_once_with("Ceres", epoch)
+  mock_jpl.assert_called_once_with("Ceres", epoch, None)
   
   # Verify that mpc_eph was NOT called as it is not in the databases inputted
   mock_mpc.assert_not_called()
@@ -466,8 +476,162 @@ def test_get_eph_both_fail():
     result_eph = get_eph("Ceres", epoch, ["JPL", "MPC"])
   
   # Verify that both eph functions were called
-  mock_mpc.assert_called_once_with("Ceres", epoch)
-  mock_jpl.assert_called_once_with("Ceres", epoch)
+  mock_mpc.assert_called_once_with("Ceres", epoch, None)
+  mock_jpl.assert_called_once_with("Ceres", epoch, None)
   
   # The results must be none
   assert result_eph is None
+  
+# Test observer location as a dictionary in MPC
+def test_mpc_eph_observer_dict():
+
+  # Testing epoch and observer
+  epoch = {
+    "start": "2026-09-09 00:00:00",
+    "step": "1min",
+    "number": 1
+  }
+  obs_id = {
+    "lon": -75.5,
+    "lat": 4.5,
+    "elevation": 0.3
+  }
+  fake_eph = Table({
+    "Date": ["2026-09-09 00:00:00"],
+    "RA": [100.0],
+    "Dec": [20.0],
+    "Delta": [1.0],
+  })
+
+  # Use mock to avoid external queries
+  with patch("occultations.core.eph.MPC.get_ephemeris", return_value=fake_eph) as mock_get_ephemeris:
+    mpc_eph("Ceres", epoch, obs_id)
+
+  # Expected observer location
+  expected_location = [
+    -75.5 * u.deg,
+    4.5 * u.deg,
+    0.3 * u.km
+  ]
+
+  # Verify that the observer location was correctly converted
+  mock_get_ephemeris.assert_called_once_with(
+    "Ceres",
+    start="2026-09-09 00:00:00",
+    step="1min",
+    number=1,
+    location=expected_location
+  )
+
+# Test observer location as a string in MPC
+@pytest.mark.parametrize("obs_id", ["500", "W84", "G96", "A01"])
+def test_mpc_eph_observer_code(obs_id):
+
+  # Testing epoch and fake eph
+  epoch = {
+    "start": "2026-09-09 00:00:00",
+    "step": "1min",
+    "number": 1
+  }
+  fake_eph = Table({
+    "Date": ["2026-09-09 00:00:00"],
+    "RA": [100.0],
+    "Dec": [20.0],
+    "Delta": [1.0],
+  })
+
+  # Use mock to avoid external queries
+  with patch("occultations.core.eph.MPC.get_ephemeris", return_value=fake_eph) as mock_get_ephemeris:
+    mpc_eph("Ceres", epoch, obs_id)
+
+  # Verify that the observer code was passed unchanged
+  mock_get_ephemeris.assert_called_once_with(
+    "Ceres",
+    start="2026-09-09 00:00:00",
+    step="1min",
+    number=1,
+    location=obs_id
+  )
+  
+# Test observer location as a dictionary in JPL
+def test_jpl_eph_observer_dict():
+
+  # Testing epoch and observer
+  epoch = {
+    "start": "2026-09-09 00:00:00",
+    "number": 1
+  }
+  obs_id = {
+    "lon": -75.5,
+    "lat": 4.5,
+    "elevation": 0.3
+  }
+
+  fake_eph = Table({
+    "datetime_jd": [2461293.5],
+    "RA": [100.0],
+    "DEC": [20.0],
+    "delta": [1.0],
+  })
+
+  # Use mock to avoid external instantiation
+  with patch("occultations.core.eph.Horizons") as mock_horizons:
+    mock_horizons.return_value.ephemerides.return_value = fake_eph
+    jpl_eph("Ceres", epoch, obs_id)
+
+  # Verify that the observer dictionary was passed unchanged
+  mock_horizons.assert_called_once_with(
+    id="Ceres",
+    epochs=Time(epoch["start"]).jd,
+    location=obs_id
+  )
+  
+# Test observer location as a string in JPL
+@pytest.mark.parametrize("obs_id", ["500", "W84", "G96", "A01"])
+def test_jpl_eph_observer_code(obs_id):
+
+  # Testing epoch and fake eph
+  epoch = {
+    "start": "2026-09-09 00:00:00",
+    "number": 1
+  }
+
+  fake_eph = Table({
+    "datetime_jd": [2461293.5],
+    "RA": [100.0],
+    "DEC": [20.0],
+    "delta": [1.0],
+  })
+
+  # Use mock to avoid external instantiation
+  with patch("occultations.core.eph.Horizons") as mock_horizons:
+    mock_horizons.return_value.ephemerides.return_value = fake_eph
+    jpl_eph("Ceres", epoch, obs_id)
+
+  # Verify that the observer code was passed unchanged
+  mock_horizons.assert_called_once_with(
+    id="Ceres",
+    epochs=Time(epoch["start"]).jd,
+    location=obs_id
+  )
+  
+# Test observer forwarding in get_eph
+def test_get_eph_observer():
+
+  # Testing epoch and observer
+  epoch = {
+    "start": "2026-09-09 00:00:00",
+    "number": 1
+  }
+  obs_id = "W84"
+  fake_eph = "fake_jpl_eph"
+
+  # Use mock to avoid eph functions
+  with patch("occultations.core.eph.jpl_eph", return_value=fake_eph) as mock_jpl:
+    result = get_eph("Ceres", epoch, ["JPL"], obs_id)
+
+  # Verify that the observer was passed to jpl_eph
+  mock_jpl.assert_called_once_with("Ceres", epoch, obs_id)
+
+  # Verify the result
+  assert result == fake_eph

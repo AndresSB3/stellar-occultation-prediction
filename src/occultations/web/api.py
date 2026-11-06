@@ -37,7 +37,8 @@ async def receive_config(config: dict):
     "message": "Configuration received successfully",
     "received": config
   }
-  
+
+# Get configuration to run the pipeline
 @app.post("/api/run")
 def run_pipeline(config: dict):
   
