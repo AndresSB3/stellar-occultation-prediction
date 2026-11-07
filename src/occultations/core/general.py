@@ -4,6 +4,7 @@ from sora import Body
 from occultations.core.diameter import handle_diameter
 from occultations.core.eph import get_eph
 from occultations.core.ephem_table import EphemTable
+from occultations.core.prediction import get_topocentric_predictions
 
 
 def run(settings, verbose=False):
@@ -39,7 +40,8 @@ def run(settings, verbose=False):
       diameter = handle_diameter(body, settings['ADS_key'])
       
       print(f'Ephemerides extraction completed for {rock}.')
-        
+      
+      # Save ephemerides locally  
       if isinstance(epoch, dict):
         if isinstance(obs, str):
           name = f'output/{rock}({obs})({epoch["start"]}-{epoch["stop"]}).csv'
@@ -59,4 +61,20 @@ def run(settings, verbose=False):
       
       print(f'Ephemerides of {rock} were saved to output folder.')
       
+      # Show diameter
       print(f"{rock}'s diameter: {diameter}")
+      
+      # Compute topocentric predictions for rock
+      print(f'Getting predictions for {rock} from {obs} in {epoch}...')
+      
+      pred = get_topocentric_predictions(
+        eph=eph_table, 
+        epoch=epoch, 
+        obs=obs, 
+        diameter=diameter, 
+        limit_magnitude=settings['limit_magnitude'], 
+        verbose=verbose
+      )
+      
+      # Present prediction table
+      print(pred)
