@@ -88,6 +88,9 @@ class EphemTable(BaseEphem):
     # Save arg data
     self.table = table
     
+    # Save ephemeris errors
+    self._set_ephemeris_errors()
+    
     # Save starting date and ending date
     self.min_time = table['time'].min()
     self.max_time = table['time'].max()
@@ -176,3 +179,34 @@ class EphemTable(BaseEphem):
       distance=distance * u.au,
       frame="icrs"
     )
+    
+  # Method to instantiate errors in EphemTable and allow the use of sigma during predictions
+  def _set_ephemeris_errors(self, horizons_ra_col="RA_3sigma", horizons_dec_col="DEC_3sigma", mpes_ellipse_col="Uncertainty 3sig"):
+    
+    # Extract table columns
+    cols = self.table.columns
+    
+    # Case JPL Horizons
+    if horizons_ra_col in cols and horizons_dec_col in cols:
+      
+      # Get maximum error for each coordinate
+      error_ra = np.nanmax(self.table[horizons_ra_col])
+      error_dec = np.nanmax(self.table[horizons_dec_col])
+      
+      # Convert 3-sigma values to 1-sigma
+      self.error_ra = (error_ra / 3) * u.arcsec
+      self.error_dec = (error_dec / 3) * u.arcsec
+      
+    # Case MPC MPES
+    elif mpes_ellipse_col in cols:
+      
+      # Get maximum semi major axis of error ellipse (we assume circular error ellipse)
+      error = np.nanmax(self.table[mpes_ellipse_col])
+      
+      # Convert 3-sigma value to 1-sigma
+      self.error_ra = (error / 3) * u.arcsec
+      self.error_dec = (error / 3) * u.arcsec
+      
+    # Case uncertainties are not given
+    else:
+      return

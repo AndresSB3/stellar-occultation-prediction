@@ -1,6 +1,6 @@
 {
   "body": {
-    "id": ["2011 YN61", "Ceres"],
+    "id": ["Silesia"],
     "fields": {
       "object_type": "asteroid",
       "critical_list_numbered_object": null,
@@ -12,18 +12,15 @@
   },
   "database": ["JPL"],
   "epoch": {
-    "start": "2026-08-25",
-    "stop": "2026-09-09",
-    "step": "1day",
-    "number": 15
+    "start": "2019-06-27",
+    "stop": "2019-06-29",
+    "step": "1m",
+    "number": 1000
   },
   "observer": [
-    {"lon": 10, "lat": 20, "elevation": 2},
-    "G37",
-    {"lon": 100, "lat": 22, "elevation": 1},
-    "W83"
+    "W63"
   ],
-  "limit_magnitude": null,
-  "exposition_time": null,
+  "limit_magnitude": 16,
+  "exposition_time": 5,
   "ADS_key": null
 }

@@ -1,5 +1,5 @@
 
-from unittest.mock import call, patch
+from unittest.mock import MagicMock, call, patch
 
 from occultations.core.general import run
 
@@ -7,18 +7,23 @@ from occultations.core.general import run
 def run_with_mocks(settings):
 
   # Use mocks to avoid external functions and file creation
-  with patch("occultations.core.general.Body") as mock_body, \
-       patch("occultations.core.general.handle_diameter", return_value=100) as mock_diameter, \
-       patch("occultations.core.general.get_eph", return_value="fake_eph") as mock_eph, \
-       patch("occultations.core.general.EphemTable") as mock_table:
-
-    # Mock CSV saving
-    mock_csv = mock_table.return_value.table.to_pandas.return_value.to_csv
-
+  with \
+    patch("occultations.core.general.get_eph", return_value="fake_eph") as mock_eph, \
+    patch("occultations.core.general.EphemTable") as mock_table, \
+    patch("occultations.core.general.Body") as mock_body, \
+    patch("occultations.core.general.handle_diameter", return_value=100) as mock_diameter, \
+    patch("occultations.core.general.get_topocentric_predictions") as mock_pred:
+      
+    # Configure EphemTable mock
+    mock_table.return_value.table.to_pandas.return_value = MagicMock()
+    
     # Run general function
     run(settings)
 
-  return mock_body, mock_diameter, mock_eph, mock_table, mock_csv
+  # Mock CSV saving
+  mock_csv = mock_table.return_value.table.to_pandas.return_value.to_csv
+
+  return mock_eph, mock_table, mock_body, mock_diameter, mock_pred, mock_csv
 
 # Test run with one observer and one body
 def test_run_single_observer_single_id():
@@ -32,11 +37,12 @@ def test_run_single_observer_single_id():
     },
     "database": "example_database",
     "ADS_key": "1234567890",
-    "observer": ["500"]
+    "observer": ["500"],
+    "limit_magnitude": "example_limit_magnitude"
   }
 
   # Run with mocks
-  mock_body, mock_diameter, mock_eph, mock_table, mock_csv = run_with_mocks(fake_settings)
+  mock_eph, mock_table, mock_body, mock_diameter, mock_pred, mock_csv = run_with_mocks(fake_settings)
 
   # Every function must be called once
   mock_body.assert_called_once_with("Ceres")
@@ -49,6 +55,14 @@ def test_run_single_observer_single_id():
     verbose=False
   )
   mock_table.assert_called_once_with("fake_eph")
+  mock_pred.assert_called_once_with(
+    eph=mock_table.return_value, 
+    epoch=fake_settings["epoch"], 
+    obs="500", 
+    diameter=100, 
+    limit_magnitude=fake_settings["limit_magnitude"], 
+    verbose=False
+  )
 
   # Verify CSV filename
   mock_csv.assert_called_once_with(
@@ -68,17 +82,19 @@ def test_run_multiple_ids():
     },
     "database": "example_database",
     "ADS_key": "1234567890",
-    "observer": ["500"]
+    "observer": ["500"],
+    "limit_magnitude": "example_limit_magnitude"
   }
 
   # Run with mocks
-  mock_body, mock_diameter, mock_eph, mock_table, mock_csv = run_with_mocks(fake_settings)
+  mock_eph, mock_table, mock_body, mock_diameter, mock_pred, mock_csv = run_with_mocks(fake_settings)
 
   # Every function must be called three times
   assert mock_body.call_count == 3
   assert mock_diameter.call_count == 3
   assert mock_eph.call_count == 3
   assert mock_table.call_count == 3
+  assert mock_pred.call_count == 3
   assert mock_csv.call_count == 3
 
   # Verify body instantiation
@@ -107,17 +123,19 @@ def test_run_multiple_observers_single_id():
     },
     "database": "example_database",
     "ADS_key": "1234567890",
-    "observer": ["500", "W84", "G96"]
+    "observer": ["500", "W84", "G96"],
+    "limit_magnitude": "example_limit_magnitude"
   }
 
   # Run with mocks
-  mock_body, mock_diameter, mock_eph, mock_table, mock_csv = run_with_mocks(fake_settings)
+  mock_eph, mock_table, mock_body, mock_diameter, mock_pred, mock_csv = run_with_mocks(fake_settings)
 
   # Every function must be called three times
   assert mock_body.call_count == 3
   assert mock_diameter.call_count == 3
   assert mock_eph.call_count == 3
   assert mock_table.call_count == 3
+  assert mock_pred.call_count == 3
   assert mock_csv.call_count == 3
 
   # Verify observer calls
@@ -146,17 +164,19 @@ def test_run_multiple_observers_multiple_ids():
     },
     "database": "example_database",
     "ADS_key": "1234567890",
-    "observer": ["500", "W84", "G96"]
+    "observer": ["500", "W84", "G96"],
+    "limit_magnitude": "example_limit_magnitude"
   }
 
   # Run with mocks
-  mock_body, mock_diameter, mock_eph, mock_table, mock_csv = run_with_mocks(fake_settings)
+  mock_eph, mock_table, mock_body, mock_diameter, mock_pred, mock_csv = run_with_mocks(fake_settings)
 
   # Every function must be called six times
   assert mock_body.call_count == 6
   assert mock_diameter.call_count == 6
   assert mock_eph.call_count == 6
   assert mock_table.call_count == 6
+  assert mock_pred.call_count == 6
   assert mock_csv.call_count == 6
 
   # Verify body instantiation order
