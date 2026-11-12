@@ -5,9 +5,10 @@ from occultations.core.diameter import handle_diameter
 from occultations.core.eph import get_eph
 from occultations.core.ephem_table import EphemTable
 from occultations.core.prediction import get_topocentric_predictions
+from occultations.core.serialization import prediction_table_to_dict
 
 
-def run(settings, verbose=False):
+def run(settings, prediction_callback=None, verbose=False):
   
   # Extract settings data
   bodies = settings['body']['id']
@@ -42,24 +43,24 @@ def run(settings, verbose=False):
       print(f'Ephemerides extraction completed for {rock}.')
       
       # Save ephemerides locally  
-      if isinstance(epoch, dict):
-        if isinstance(obs, str):
-          name = f'output/{rock}({obs})({epoch["start"]}-{epoch["stop"]}).csv'
-        elif not obs:
-          name = f'output/{rock}(geo)({epoch["start"]}-{epoch["stop"]}).csv'
-        else:
-          name = f'output/{rock}({obs.values()})({epoch["start"]}-{epoch["stop"]}).csv'
-      else:
-        if isinstance(obs, str):
-          name = f'output/{rock}({obs})({epoch[0]}-{epoch[-1]}).csv'
-        elif not obs:
-          name = f'output/{rock}(geo)({epoch[0]}-{epoch[-1]}).csv'
-        else:
-          name = f'output/{rock}({obs.values()})({epoch[0]}-{epoch[-1]}).csv'
+      # if isinstance(epoch, dict):
+      #   if isinstance(obs, str):
+      #     name = f'output/{rock}({obs})({epoch["start"]}-{epoch["stop"]}).csv'
+      #   elif not obs:
+      #     name = f'output/{rock}(geo)({epoch["start"]}-{epoch["stop"]}).csv'
+      #   else:
+      #     name = f'output/{rock}({obs.values()})({epoch["start"]}-{epoch["stop"]}).csv'
+      # else:
+      #   if isinstance(obs, str):
+      #     name = f'output/{rock}({obs})({epoch[0]}-{epoch[-1]}).csv'
+      #   elif not obs:
+      #     name = f'output/{rock}(geo)({epoch[0]}-{epoch[-1]}).csv'
+      #   else:
+      #     name = f'output/{rock}({obs.values()})({epoch[0]}-{epoch[-1]}).csv'
         
-      eph_table.table.to_pandas().to_csv(name, index=False)
+      # eph_table.table.to_pandas().to_csv(name, index=False)
       
-      print(f'Ephemerides of {rock} were saved to output folder.')
+      # print(f'Ephemerides of {rock} were saved to output folder.')
       
       # Show diameter
       print(f"{rock}'s diameter: {diameter}")
@@ -78,3 +79,12 @@ def run(settings, verbose=False):
       
       # Present prediction table
       print(pred)
+      
+      # Check if we should send the prediction to the UI
+      if prediction_callback is not None:
+        
+        # Serialize or convert the prediction table to a readable combination of lists and dictionaries
+        pred_serial = prediction_table_to_dict(pred=pred, body=rock, obs=obs)
+        
+        # Send prediction callback
+        prediction_callback(pred_serial)
