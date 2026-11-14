@@ -4,6 +4,18 @@ document.querySelector("#generate-ephemerides").addEventListener("click", async(
   // Save button element
   const button = document.querySelector("#generate-ephemerides");
 
+  // Open results tab immediately to avoid popup blockers
+  const resultsTab = window.open(
+    "/static/results.html?run_id=pending",
+    "_blank"
+  );
+
+  // Verify that the browser allowed the new tab
+  if (!resultsTab) {
+    alert("Please allow pop-ups to open the results page.");
+    return;
+  }
+
   try {
 
     // Create object with inputted information
@@ -13,7 +25,7 @@ document.querySelector("#generate-ephemerides").addEventListener("click", async(
     button.disabled = true;
     button.textContent = "Generating ephemerides...";
 
-    // Send configuration
+    // Send configuration and start pipeline
     const response = await fetch("/api/run", {
       method: "POST",
       headers: {
@@ -33,8 +45,11 @@ document.querySelector("#generate-ephemerides").addEventListener("click", async(
       throw new Error(result.detail || "Request failed");
     }
 
-    console.log("Pipeline result:", result);
-    alert("Ephemerides generated successfully!");
+    // Change the link of the new tab using the run id of the response
+    resultsTab.location.href = `/static/results.html?run_id=${encodeURIComponent(result.run_id)}`;
+
+    console.log("Pipeline started:", result.run_id);
+    
   } catch (error) {
     console.error("Error running pipeline:", error);
     alert(`Could not generate ephemerides: ${error.message}`);

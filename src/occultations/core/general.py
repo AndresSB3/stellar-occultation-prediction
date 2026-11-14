@@ -80,6 +80,8 @@ def run(settings, prediction_callback=None, verbose=False):
       # Present prediction table
       print(pred)
       
+      print(f"Prediction completed: {rock} - {obs}")
+      
       # Check if we should send the prediction to the UI
       if prediction_callback is not None:
         
@@ -87,4 +89,9 @@ def run(settings, prediction_callback=None, verbose=False):
         pred_serial = prediction_table_to_dict(pred=pred, body=rock, obs=obs)
         
         # Send prediction callback
-        prediction_callback(pred_serial)
+        prediction_callback({
+          "data": pred_serial,
+          "table": pred
+        })
+        
+        print("Prediction callback completed.")
