@@ -14,7 +14,7 @@ def main(verbose=False, update=False):
   settings = default(settings)
   
   # Run pipeline
-  run(settings, verbose)
+  run(settings, verbose=verbose)
   
 
 if __name__ == "__main__":
