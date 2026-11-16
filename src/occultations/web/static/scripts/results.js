@@ -4,7 +4,7 @@ const runId = params.get("run_id");
 
 // Save HTML elements
 const statusElement = document.querySelector("#status");
-const resultsConatiner = document.querySelector("#results-container");
+const resultsContainer = document.querySelector("#results-container");
 
 // Verify execution identifier
 if (!runId || runId === "pending") {
@@ -43,7 +43,7 @@ if (!runId || runId === "pending") {
     if (prediction.events.length === 0) { 
       const message = document.createElement("p");
       message.className = "empty-message";
-      message.textContent = "No occultaiton events found.";
+      message.textContent = "No occultation events found.";
 
       card.appendChild(message)
 
@@ -86,7 +86,7 @@ if (!runId || runId === "pending") {
         formatNumber(event.g, 3)
       ];
       values.forEach(value => {
-        const td = documento.createElement("td");
+        const td = document.createElement("td");
         td.textContent = value;
         row.appendChild(td);
       });
