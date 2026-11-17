@@ -6,6 +6,9 @@ from astropy.time import Time
 from sora.observer import Observer
 from sora.prediction import prediction
 
+from occultations.core.eph import get_eph
+from occultations.core.ephem_table import EphemTable
+
 
 # Function to compute prediction step based on object size and distance
 def estimate_prediction_step(eph, radius, safety=0.5):
@@ -46,12 +49,11 @@ def estimate_prediction_step(eph, radius, safety=0.5):
 
   return step
 
-
-# Function to generate topocentric predictions for a given body and a given epoch
-def get_topocentric_predictions(eph, epoch, obs, diameter, limit_magnitude, verbose=False):
+# Function to compute derivative arguments
+def estimate_prediction_args(diameter, epoch, eph, obs=None):
   
   # Compute radius with diameter
-  
+    
   # Case exact value
   if isinstance(diameter, (float, int)) and not isinstance(diameter, bool):
     
@@ -114,7 +116,9 @@ def get_topocentric_predictions(eph, epoch, obs, diameter, limit_magnitude, verb
     raise TypeError("Epoch must be a dictionary with 'start' and 'stop', a list of UTC dates, or a list of Julian Dates.")
   
   # Instantiate observer with obs arg
-  if isinstance(obs, str):
+  if obs is None:
+    reference_center = 'geocenter'
+  elif isinstance(obs, str):
     reference_center = Observer(code=obs)
   elif (
     isinstance(obs, dict) and
@@ -131,6 +135,15 @@ def get_topocentric_predictions(eph, epoch, obs, diameter, limit_magnitude, verb
   # Compute step based on epoch
   step = estimate_prediction_step(eph=eph, radius=radius)
   
+  return radius, sigma, start, stop, divs, reference_center, step
+
+
+# Function to generate topocentric predictions for a given body and a given epoch
+def get_topocentric_predictions(eph, epoch, obs, diameter, limit_magnitude, verbose=False):
+  
+  # Compute derivative arguments
+  radius, sigma, start, stop, divs, reference_center, step = estimate_prediction_args(diameter=diameter, epoch=epoch, obs=obs, eph=eph)
+  
   # Topocentric prediction with SORA
   return prediction(
     time_beg=start,
@@ -144,3 +157,48 @@ def get_topocentric_predictions(eph, epoch, obs, diameter, limit_magnitude, verb
     sigma=sigma,
     verbose=verbose
   )
+  
+def get_geocentric_prediction(body_id, event_row, diameter, settings, verbose=False):
+  
+  # Extract event epoch and star id from topocentric prediction
+  star_id = event_row['GaiaDR3 Source ID']
+  event_epoch = event_row['Epoch']
+  
+  # Create epoch range based on event epoch, query ephemerides and instantiate ephemtable
+  geo_epoch_range = {
+    "start": str(event_epoch - '0.1d'),
+    "stop": str(event_epoch + '0.1d'),
+    "step": "1m",
+    "Number": 1000
+  }
+  geo_eph = get_eph(body_id, geo_epoch_range, settings['database'], verbose=verbose)
+  geo_eph_table = EphemTable(geo_eph, name=body_id)
+  
+  # Estimate derivative prediction args
+  radius, sigma, start, stop, divs, reference_center, step = estimate_prediction_args(
+    diameter=diameter, 
+    epoch=geo_epoch_range, 
+    eph=geo_eph_table
+  )
+  
+  # Geocentric prediction with SORA
+  geo_pred = prediction(
+    time_beg=start,
+    time_end=stop,
+    ephem=geo_eph_table,
+    reference_center=reference_center,
+    radius=radius,
+    mag_lim=settings['limit_magnitude'],
+    divs=divs,
+    step=step,
+    sigma=sigma,
+    verbose=verbose
+  )
+  
+  # Extract prediction row corresponding to the topocentric prediction using the star id
+  for geo_pred_row in geo_pred:
+    if geo_pred_row['GaiaDR3 Source ID'] == star_id:
+      geo_event_row = geo_pred_row
+      
+  # Return prediction row
+  return geo_event_row

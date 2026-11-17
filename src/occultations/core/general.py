@@ -4,7 +4,10 @@ from sora import Body
 from occultations.core.diameter import handle_diameter
 from occultations.core.eph import get_eph
 from occultations.core.ephem_table import EphemTable
-from occultations.core.prediction import get_topocentric_predictions
+from occultations.core.prediction import (
+  get_geocentric_prediction,
+  get_topocentric_predictions,
+)
 from occultations.core.serialization import prediction_table_to_dict
 
 
@@ -32,7 +35,7 @@ def run(settings, prediction_callback=None, verbose=False):
       eph = get_eph(rock, epoch, database, obs, verbose=verbose)
       
       # Instantiate ephemerides to EphemTable
-      eph_table = EphemTable(eph)
+      eph_table = EphemTable(eph, name=rock)
       
       # Body instantiation
       body = Body(rock)
@@ -67,7 +70,6 @@ def run(settings, prediction_callback=None, verbose=False):
       
       # Compute topocentric predictions for rock
       print(f'Getting predictions for {rock} from {obs} in {epoch}...')
-      
       pred = get_topocentric_predictions(
         eph=eph_table, 
         epoch=epoch, 
@@ -79,8 +81,21 @@ def run(settings, prediction_callback=None, verbose=False):
       
       # Present prediction table
       print(pred)
+      print(f"Topocentric Prediction completed: {rock} - {obs}")
       
-      print(f"Prediction completed: {rock} - {obs}")
+      # Compute geocentric prediction
+      print(f"Getting geocentric prediction for {rock} in {pred['Epoch']}...")
+      geo_event_row = get_geocentric_prediction(rock, pred[0], diameter, settings, verbose)
+      
+      # Present prediction row
+      print(geo_event_row)
+      print(f"Geocentric Prediction completed: {rock}")
+      
+      # Compute occultation map
+      print("Creating occultation map...")
+      filename = rock + '-' + obs
+      geo_event_row.plot_occ_map(path="output/", nameimg=filename)
+      print("Occultation map saved to output folder.")
       
       # Check if we should send the prediction to the UI
       if prediction_callback is not None:
