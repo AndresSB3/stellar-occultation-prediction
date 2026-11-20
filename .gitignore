@@ -9,6 +9,7 @@ wheels/
 
 # Virtual environments
 .venv
+.venv-sora-test
 
 # Local data
 data/*
