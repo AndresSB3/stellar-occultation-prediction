@@ -64,3 +64,5 @@ def occ_unc(body_cov, star_cov):
   # The occultation covariance matrix is therefore the matricial multiplication of the coeficients (representing the difference), the diagonal matrix from above and the transposed coeficient matrix from above
   return coef @ event_cov @ coef.T
   
+def event_unc(occ_cov):
+  pass
